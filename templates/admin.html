@@ -8,9 +8,9 @@
 </head>
 <body>
     <header class="header-nav">
-  <a href="{{ url_for('main.perfil') }}" class="btn btn-green">Meu Perfil</a>
- <a href="{{ url_for('auth.logout') }}" class="btn btn-red">Sair</a>
-    </header>   
+        <a href="{{ url_for('main.perfil') }}" class="btn btn-green">Meu Perfil</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-red">Sair</a>
+    </header>   
 
     <main class="main-container">
         <div class="welcome-header">
@@ -19,14 +19,11 @@
         </div>
 
         <div class="action-grid">
-            <a href="{{ url_for('usuario.gerenciar_usuarios') }}">...</a>
+            <a href="{{ url_for('usuario.gerenciar_usuarios') }}" class="action-card">
                 <h2>Gerenciar Usuários</h2>
-                <p>Adicione, edite ou remova usuários do sistema.</p>
+                <p>Adicione, edite ou remova admins e clientes.</p>
             </a>
-            <a href="{{ url_for('cliente.gerenciar_clientes') }}" class="action-card">
-                <h2>Gerenciar Clientes</h2>
-                <p>Consulte e gerencie a sua base de clientes.</p>
-            </a>
+            
             <a href="{{ url_for('produto.gerenciar_produtos') }}" class="action-card">
                 <h2>Gerenciar Produtos</h2>
                 <p>Adicione ou edite produtos do seu catálogo.</p>
@@ -44,4 +41,3 @@
 
 </body>
 </html>
-

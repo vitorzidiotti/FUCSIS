@@ -60,7 +60,8 @@ def atualizar_usuario_admin(id_usuario, dados_formulario):
         dados_update = {
             'nome': dados_formulario.get('nome'), 
             'email': dados_formulario.get('email'), 
-            'is_admin': dados_formulario.get('is_admin') == 'on'
+            'is_admin': dados_formulario.get('is_admin') == 'on',
+            'cpf': dados_formulario.get('cpf') 
         }
         
         # Opcional: Atualizar senha se ela for fornecida
@@ -86,3 +87,14 @@ def excluir_usuario_admin(id_usuario_a_excluir, id_usuario_logado):
     except Exception as e:
         print(f"Erro no excluir_usuario_admin: {e}")
         return False, f"Erro ao excluir usuário: {e}"
+    
+    
+def listar_apenas_clientes():
+    """ Lista apenas usuários que são clientes (is_admin=False). """
+    try:
+        query = supabase.table("tb_usuario").select("*").eq("is_admin", False).order("nome")
+        clientes = query.execute().data
+        return clientes, None
+    except Exception as e:
+        print(f"Erro no listar_apenas_clientes: {e}")
+        return [], f"Erro ao carregar clientes: {e}"    

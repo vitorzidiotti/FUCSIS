@@ -1,29 +1,38 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adicionar Produto</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <div class="auth-container">
+{% extends "base.html" %}
+
+{% block title %}Adicionar Produto{% endblock %}
+
+{% block content %}
+    <div class="auth-container" style="margin-top: 2rem;">
         <h1>Adicionar Novo Produto</h1>
-        
-        <form method="POST" action="{{ url_for('adicionar_produto') }}">
-            
+        {# Usamos form_data para repopular em caso de erro #}
+        <form method="POST" action="{{ url_for('produto.adicionar_produto') }}">
+
             <label for="nome">Nome do Produto:</label>
-            <input type="text" id="nome" name="nome" required>
+            <input type="text" id="nome" name="nome" value="{{ form_data.nome if form_data else '' }}" required>
 
             <label for="marca">Marca:</label>
-            <input type="text" id="marca" name="marca">
+            <input type="text" id="marca" name="marca" value="{{ form_data.marca if form_data else '' }}" required>
 
             <label for="preco">Preço (R$):</label>
-            <input type="number" id="preco" name="preco" step="0.01" min="0" required>
+            <input type="number" id="preco" name="preco" step="0.01" min="0" value="{{ form_data.preco if form_data else '' }}" required>
 
-            <button type="submit" class="btn btn-green" style="width: 100%; padding: 14px;">Cadastrar Produto</button>
-            <a href="{{ url_for('gerenciar_produtos') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Cancelar</a>
+            <label for="medida">Medida:</label>
+            <select id="medida" name="medida" required>
+                <option value="" disabled {% if not form_data or not form_data.medida %}selected{% endif %}>Selecione...</option>
+                {% for unidade in unidades %}
+                <option value="{{ unidade }}" {% if form_data and form_data.medida == unidade %}selected{% endif %}>{{ unidade|upper }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="validade">Validade:</label>
+            <input type="date" id="validade" name="validade" value="{{ form_data.validade if form_data else '' }}" required min="{{ min_date }}"> {# Adicionado min="{{ min_date }}" #}
+
+            <label for="lote">Lote:</label>
+            <input type="text" id="lote" name="lote" value="{{ form_data.lote if form_data else '' }}" required>
+
+            <button type="submit" class="btn btn-green" style="width: 100%; padding: 14px; margin-top: 1rem;">Cadastrar Produto</button>
+            <a href="{{ url_for('produto.gerenciar_produtos') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Cancelar</a>
         </form>
     </div>
-</body>
-</html>
+{% endblock %}

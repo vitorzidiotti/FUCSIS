@@ -51,7 +51,7 @@ a {
     padding: 0.6rem 1.2rem;
     border: none;
     border-radius: 8px;
-    font-family: inherit; /* Garante que <a> e <button> usem a mesma fonte */
+    font-family: inherit;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -63,6 +63,7 @@ a {
     transition: transform 0.2s, box-shadow 0.2s;
     white-space: nowrap;
     box-sizing: border-box;
+    line-height: 1;
 }
 
 .btn:hover {
@@ -70,17 +71,16 @@ a {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-/* Cores dos Botões */
-.btn-green { background-color: #28a745; } /* Adicionar */
+.btn-green { background-color: #28a745; }
 .btn-green:hover { background-color: #218838; }
 
-.btn-yellow { background-color: #ffc107; color: #212529; } /* Editar, Voltar */
+.btn-yellow { background-color: #ffc107; color: #212529; }
 .btn-yellow:hover { background-color: #e0a800; }
 
-.btn-red { background-color: #dc3545; } /* Excluir, Sair */
+.btn-red { background-color: #dc3545; }
 .btn-red:hover { background-color: #c82333; }
 
-.btn-blue { background-color: #007bff; } /* Ações primárias (Pesquisar) */
+.btn-blue { background-color: #007bff; }
 .btn-blue:hover { background-color: #0069d9; }
 
 
@@ -123,11 +123,9 @@ a {
 /* ==========================================================================
    5. FORMULÁRIOS
    ========================================================================== */
-
-/* Formulários de Autenticação (Login, Cadastro) */
 .auth-container {
     max-width: 420px;
-    margin: 5rem auto;
+    margin: 3rem auto;
     padding: 2.5rem;
     background: #fff;
     border-radius: 12px;
@@ -146,8 +144,20 @@ a {
     gap: 1rem;
 }
 
-/* Estilos gerais para campos de formulário */
-input, select, textarea {
+label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #ced4da;
@@ -158,36 +168,40 @@ input, select, textarea {
     font-family: 'Inter', Arial, sans-serif;
 }
 
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
 input:focus, select:focus, textarea:focus {
     border-color: #4caf50;
     outline: none;
     box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
 }
 
-/* Barra de Ferramentas com Pesquisa */
 .toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
     margin-bottom: 1.5rem;
-    flex-wrap: wrap; 
+    flex-wrap: wrap;
 }
 
 .search-form {
     display: flex;
-    flex-grow: 1; 
-    max-width: 600px; 
+    flex-grow: 1;
+    max-width: 600px;
 }
 
 .search-form input {
-    width: 100%;
-    border-radius: 8px 0 0 8px; 
+    flex-grow: 1;
+    border-radius: 8px 0 0 8px;
     border-right: none;
 }
 
 .search-form button {
-    border-radius: 0 8px 8px 0; 
+    border-radius: 0 8px 8px 0;
 }
 
 
@@ -205,13 +219,13 @@ input:focus, select:focus, textarea:focus {
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 700px; 
+    min-width: 700px;
 }
 
 th, td {
     padding: 1rem;
-    text-align: left;
     border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
 }
 
 th {
@@ -225,11 +239,25 @@ tr:last-child td {
     border-bottom: none;
 }
 
+.table-container th:nth-child(4),
+.table-container td:nth-child(4) {
+    text-align: left;
+}
+
+.table-container th:nth-child(1), .table-container td:nth-child(1),
+.table-container th:nth-child(2), .table-container td:nth-child(2),
+.table-container th:nth-child(3), .table-container td:nth-child(3),
+.table-container th:nth-child(5), .table-container td:nth-child(5),
+.table-container th:nth-child(6), .table-container td:nth-child(6),
+.table-container th:nth-child(7), .table-container td:nth-child(7) {
+    text-align: center;
+}
+
 .action-buttons {
     display: flex;
     gap: 0.5rem;
     align-items: center;
-    justify-content: center; /* Alinha os botões ao centro */
+    justify-content: center;
 }
 
 .action-buttons form {
@@ -237,10 +265,11 @@ tr:last-child td {
     display: flex;
 }
 
-/* Regra para padronizar tamanho de botões específicos */
 .search-form .btn,
 .action-buttons .btn {
-    width: 100px;
+    width: 90px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
 }
 
 .no-results {
@@ -249,7 +278,6 @@ tr:last-child td {
     color: #6c757d;
 }
 
-/* Classes utilitárias para alinhamento de texto */
 .text-center {
     text-align: center;
 }
@@ -263,18 +291,16 @@ tr:last-child td {
         padding: 1rem;
         justify-content: space-between;
     }
-    
+
     .main-container {
         padding: 0 1rem;
     }
 
-    /* Ajusta a barra de ferramentas para empilhar verticalmente */
     .toolbar {
         flex-direction: column;
-        align-items: stretch; 
+        align-items: stretch;
     }
 
-    /* Ajusta o formulário de pesquisa em telas pequenas */
     .search-form {
         display: block;
     }
@@ -288,9 +314,11 @@ tr:last-child td {
         width: 100%;
     }
 
-    /* Adapta a tabela para o formato de "cards" */
+    .table-container {
+        padding: 0.5rem;
+    }
     .table-container thead {
-        display: none; 
+        display: none;
     }
     .table-container tr {
         display: block;
@@ -298,12 +326,14 @@ tr:last-child td {
         border: 1px solid #e9ecef;
         border-radius: 8px;
         padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .table-container td {
         display: block;
-        text-align: right; 
-        padding: 0.5rem 0;
+        text-align: right;
+        padding: 0.7rem 0;
         border-bottom: 1px dotted #ccc;
+        font-size: 0.95rem;
     }
     .table-container td:last-child {
         border-bottom: none;
@@ -314,15 +344,21 @@ tr:last-child td {
         font-weight: 600;
         text-transform: uppercase;
         font-size: 0.85rem;
+        color: #495057;
+        margin-right: 1rem;
     }
-    /* No mobile, os botões já ficam à direita por padrão, então mantemos */
     .action-buttons {
-        justify-content: flex-end; 
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+    }
+    .action-buttons .btn {
+        white-space: nowrap;
     }
 }
 
+
 /* ==========================================================================
-   8. SISTEMA DE NOTIFICAÇÕES (TOASTS)
+   8. SISTEMA DE NOTIFICAÇÕES (SWEETALERT2 TOASTS)
    ========================================================================== */
 .toast-container {
     position: fixed;
@@ -370,8 +406,6 @@ tr:last-child td {
     }
 }
 
-
-/* Cores para cada tipo de mensagem */
 .toast-sucesso {
     background-color: #28a745;
     border-left: 5px solid #218838;
@@ -385,4 +419,8 @@ tr:last-child td {
 .toast-info {
     background-color: #17a2b8;
     border-left: 5px solid #138496;
+}
+
+body.swal2-toast-shown .swal2-container {
+  z-index: 1100;
 }

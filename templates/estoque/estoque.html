@@ -5,14 +5,17 @@
 {% block content %}
     <h1>Controle de Estoque</h1>
 
+    {# --- Formulário de Movimentação --- #}
     <div class="form-container" style="background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); margin-bottom: 2rem;">
         <h2>Registrar Movimentação</h2>
-        <form action="{{ url_for('adicionar_movimento') }}" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
-            
+        {# CORRIGIDO: Adicionado 'estoque.' ao url_for #}
+        <form action="{{ url_for('estoque.adicionar_movimento') }}" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
+
             <div>
                 <label for="id_produto">Produto:</label>
                 <select id="id_produto" name="id_produto" required>
                     <option value="" disabled selected>Selecione um produto...</option>
+                    {# Assume que 'produtos' (lista de todos produtos) é passado pela rota #}
                     {% for produto in produtos %}
                         <option value="{{ produto.id_produto }}">{{ produto.nome }}</option>
                     {% endfor %}
@@ -33,39 +36,40 @@
             </div>
 
             <div style="grid-column: 1 / -1;">
-                <label for="motivo">Motivo:</label>
-                <input type="text" id="motivo" name="motivo" placeholder="Ex: Compra de fornecedor, Ajuste de inventário" required>
+                <label for="motivo">Motivo/Observação:</label> {# Texto do label ajustado #}
+                <input type="text" id="motivo" name="motivo" placeholder="Ex: Compra NF 123, Ajuste, Venda ID 45" required>
             </div>
 
             <button type="submit" class="btn btn-green" style="grid-column: 1 / -1;">Registrar Movimento</button>
         </form>
     </div>
 
+    {# --- Tabela de Histórico --- #}
     <div class="table-container">
-        <h2>Histórico de Movimentações</h2>
+        <h2>Histórico de Movimentações (Últimas 10 por página)</h2> {# Título ajustado #}
         <table>
             <thead>
                 <tr>
                     <th>Produto</th>
                     <th>Tipo</th>
                     <th>Quantidade</th>
-                    <th>Motivo</th>
-                    <th>Data</th>
+                    <th>Data</th> {# Aplicaremos filtro de data BR aqui também #}
                 </tr>
             </thead>
             <tbody>
                 {% if movimentos %}
                     {% for mov in movimentos %}
                     <tr>
-                        <td data-label="Produto">{{ mov.tb_produto.nome if mov.tb_produto else 'Produto não encontrado' }}</td>
+                        {# Verifica se tb_produto existe e tem nome #}
+                        <td data-label="Produto">{{ mov.tb_produto.nome if mov.tb_produto and 'nome' in mov.tb_produto else 'Produto não encontrado' }}</td>
                         <td data-label="Tipo">
                             <span style="font-weight: bold; color: {{ '#28a745' if mov.tipo_mov == 'ENTRADA' else '#dc3545' }};">
                                 {{ mov.tipo_mov }}
                             </span>
                         </td>
                         <td data-label="Quantidade">{{ mov.quantidade }}</td>
-                        <td data-label="Motivo">{{ mov.motivo }}</td>
-                        <td data-label="Data">{{ mov.criado_em.split('T')[0] }}</td>
+                        {# Aplica filtro para formatar data/hora (se existir) #}
+                        <td data-label="Data">{{ mov.criado_em | format_br_datetime if mov.criado_em else '-'}}</td>
                     </tr>
                     {% endfor %}
                 {% else %}
@@ -77,5 +81,53 @@
                 {% endif %}
             </tbody>
         </table>
+
+        {# --- ADICIONADO: Controles de Paginação --- #}
+        {% if total_pages > 1 %}
+        <div class="pagination" style="margin-top: 1.5rem; text-align: center;">
+            {# Botão Anterior #}
+            {% if page > 1 %}
+                <a href="{{ url_for('estoque.estoque_mov', page=page-1) }}" class="btn btn-blue" style="margin-right: 0.5rem;">&laquo; Anterior</a>
+            {% else %}
+                <span class="btn btn-blue" style="margin-right: 0.5rem; opacity: 0.5; cursor: default;">&laquo; Anterior</span>
+            {% endif %}
+
+            {# Informação da Página Atual #}
+            <span style="margin: 0 1rem; font-weight: bold;">Página {{ page }} de {{ total_pages }}</span>
+
+            {# Botão Próximo #}
+            {% if page < total_pages %}
+                <a href="{{ url_for('estoque.estoque_mov', page=page+1) }}" class="btn btn-blue" style="margin-left: 0.5rem;">Próximo &raquo;</a>
+            {% else %}
+                <span class="btn btn-blue" style="margin-left: 0.5rem; opacity: 0.5; cursor: default;">Próximo &raquo;</span>
+            {% endif %}
+        </div>
+        {% endif %}
+        {# --- FIM DA PAGINAÇÃO --- #}
+
     </div>
+{% endblock %}
+
+{% block scripts %}
+{# Adiciona um script simples para formatar a data/hora, caso o filtro Jinja não seja criado #}
+{# Se criar o filtro Jinja 'format_br_datetime', este script não é necessário #}
+<script>
+ document.addEventListener('DOMContentLoaded', function() {
+  const dateCells = document.querySelectorAll('td[data-label="Data"]');
+  dateCells.forEach(cell => {
+   const isoDateTime = cell.textContent.trim();
+   if (isoDateTime && isoDateTime !== '-') {
+    try {
+     const dateObj = new Date(isoDateTime);
+     // Formata para DD/MM/YYYY HH:MM
+     const formatted = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+     cell.textContent = formatted;
+    } catch (e) {
+     console.error("Erro ao formatar data:", isoDateTime, e);
+     // Deixa o valor original se der erro
+    }
+   }
+  });
+ });
+</script>
 {% endblock %}

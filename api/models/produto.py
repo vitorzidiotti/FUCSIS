@@ -5,9 +5,11 @@ from typing import Optional
 @dataclass
 class Produto:
     id_produto: int
-    nome: str
+    nome: str [50]
     preco: float
     estoque: int
     criado_em: str
-    marca: Optional[str] = None
-    validade: Optional[str] = None
+    marca: str [50]
+    validade: str [50]
+    lote: str [50]
+    medida: str [20]

@@ -6,7 +6,7 @@
     <div class="auth-container" style="margin-top: 2rem;">
         <h1>Editar Usuário</h1>
         
-        <form method="POST" action="{{ url_for('editar_usuario', id_usuario=usuario.id_usuario) }}">
+        <form method="POST" action="{{ url_for('usuario.editar_usuario', id_usuario=usuario.id_usuario) }}">
             <label for="nome">Nome Completo:</label>
             <input type="text" id="nome" name="nome" value="{{ usuario.nome }}" required>
 
@@ -23,9 +23,8 @@
                 <input type="checkbox" id="is_admin" name="is_admin" style="width: auto;" {% if usuario.is_admin %}checked{% endif %}>
                 <label for="is_admin" style="margin: 0;">Este usuário é um administrador?</label>
             </div>
-
             <button type="submit" class="btn btn-green" style="width: 100%; padding: 14px; margin-top: 1rem;">Salvar Alterações</button>
-            <a href="{{ url_for('gerenciar_usuarios') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Cancelar</a>
+            <a href="{{ url_for('usuario.gerenciar_usuarios') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Cancelar</a>
         </form>
     </div>
 {% endblock %}

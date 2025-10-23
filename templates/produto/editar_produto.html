@@ -1,28 +1,41 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Produto</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <div class="auth-container">
-        <h1>Editar Produto</h1>
-        
-        <form method="POST" action="{{ url_for('editar_produto', id_produto=produto.id_produto) }}">
-            <label for="nome">Nome do Produto:</label>
-            <input type="text" id="nome" name="nome" value="{{ produto.nome }}" required>
+{% extends "base.html" %}
 
-            <label for="descricao">Marca:</label>
-            <textarea id="descricao" name="descricao" rows="4">{{ produto.descricao }}</textarea>
+{% block title %}Editar Produto{% endblock %}
+
+{% block content %}
+    <div class="auth-container" style="margin-top: 2rem;">
+        <h1>Editar Produto</h1>
+        {# Prioriza dados do request.form se a página foi recarregada por erro, senão usa dados do produto #}
+        <form method="POST" action="{{ url_for('produto.editar_produto', id_produto=produto.id_produto) }}">
+
+            <label for="nome">Nome do Produto:</label>
+            <input type="text" id="nome" name="nome" value="{{ request.form.get('nome', produto.nome) }}" required>
+
+            <label for="marca">Marca:</label>
+            <input type="text" id="marca" name="marca" value="{{ request.form.get('marca', produto.marca) }}" required>
 
             <label for="preco">Preço (R$):</label>
-            <input type="number" id="preco" name="preco" step="0.01" min="0" value="{{ produto.preco }}" required>
+            <input type="number" id="preco" name="preco" step="0.01" min="0" value="{{ request.form.get('preco', produto.preco) }}" required>
 
-            <button type="submit" class="btn btn-green" style="width: 100%; padding: 14px;">Salvar Alterações</button>
-            <a href="{{ url_for('gerenciar_produtos') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Cancelar</a>
+            <label for="medida">Medida:</label>
+            <select id="medida" name="medida" required>
+                <option value="" disabled {% if not request.form.get('medida', produto.medida) %}selected{% endif %}>Selecione...</option>
+                {% set medida_selecionada = request.form.get('medida', produto.medida) %}
+                {% for unidade in unidades %}
+                <option value="{{ unidade }}" {% if medida_selecionada == unidade %}selected{% endif %}>
+                    {{ unidade|upper }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <label for="validade">Validade:</label>
+            <input type="date" id="validade" name="validade" value="{{ request.form.get('validade', produto.validade) }}" required min="{{ min_date }}"> {# Adicionado min="{{ min_date }}" #}
+
+            <label for="lote">Lote:</label>
+            <input type="text" id="lote" name="lote" value="{{ request.form.get('lote', produto.lote) }}" required>
+
+            <button type="submit" class="btn btn-green" style="width: 100%; padding: 14px; margin-top: 1rem;">Salvar Alterações</button>
+            <a href="{{ url_for('produto.gerenciar_produtos') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Cancelar</a>
         </form>
     </div>
-</body>
-</html>
+{% endblock %}

@@ -6,11 +6,11 @@
     <h1>Gerenciar Produtos</h1>
 
     <div class="toolbar">
-        <form class="search-form" method="GET" action="{{ url_for('gerenciar_produtos') }}">
+        <form class="search-form" method="GET" action="{{ url_for('produto.gerenciar_produtos') }}">
             <input type="text" name="q" placeholder="Buscar produto por nome..." value="{{ termo_busca or '' }}">
             <button type="submit" class="btn btn-blue">Pesquisar</button>
         </form>
-        <a href="{{ url_for('adicionar_produto') }}" class="btn btn-green">+ Incluir Produto</a>
+        <a href="{{ url_for('produto.adicionar_produto') }}" class="btn btn-green">+ Incluir Produto</a>
     </div>
 
     <div class="table-container">
@@ -18,8 +18,11 @@
             <thead>
                 <tr>
                     <th>Nome</th>
+                    <th>Marca</th>
                     <th>Preço</th>
-                    <th>Estoque</th>
+                    <th>Medida</th>
+                    <th>Validade</th>
+                    <th>Lote</th>
                     <th class="text-center">Ações</th>
                 </tr>
             </thead>
@@ -28,13 +31,16 @@
                     {% for produto in produtos %}
                     <tr>
                         <td data-label="Nome">{{ produto.nome }}</td>
+                        <td data-label="Marca">{{ produto.marca }}</td> {# Removido 'or -' pois é obrigatório #}
                         <td data-label="Preço">R$ {{ "%.2f"|format(produto.preco|float) }}</td>
-                        <td data-label="Estoque">{{ produto.estoque }}</td>
+                        <td data-label="Medida">{{ produto.medida|upper }}</td> {# Removido 'or -' pois é obrigatório #}
+                        {# Aplica o filtro format_br_date à data de validade #}
+                        <td data-label="Validade">{{ produto.validade | format_br_date }}</td>
+                        <td data-label="Lote">{{ produto.lote }}</td> {# Removido 'or -' pois é obrigatório #}
                         <td data-label="Ações">
                             <div class="action-buttons">
-                                <a href="{{ url_for('editar_produto', id_produto=produto.id_produto) }}" class="btn btn-yellow">Editar</a>
-                                
-                                <form class="delete-form" action="{{ url_for('excluir_produto', id_produto=produto.id_produto) }}" method="POST">
+                                <a href="{{ url_for('produto.editar_produto', id_produto=produto.id_produto) }}" class="btn btn-yellow">Editar</a>
+                                <form class="delete-form" action="{{ url_for('produto.excluir_produto', id_produto=produto.id_produto) }}" method="POST">
                                     <button type="submit" class="btn btn-red">Excluir</button>
                                 </form>
                             </div>
@@ -43,8 +49,12 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="4" class="no-results">
-                            Nenhum produto encontrado com o termo "{{ termo_busca }}".
+                        <td colspan="7" class="no-results">
+                            {% if termo_busca %}
+                                Nenhum produto encontrado com o termo "{{ termo_busca }}".
+                            {% else %}
+                                Nenhum produto cadastrado.
+                            {% endif %}
                         </td>
                     </tr>
                 {% endif %}
