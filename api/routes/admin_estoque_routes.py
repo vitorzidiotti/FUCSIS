@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from ..utils.decorators import admin_required, nocache
 from ..controllers import admin_estoque_controller 
@@ -105,12 +104,3 @@ def salvar_ajustes_individuais():
             flash(f"Erro: {erro_msg}", "erro")
             
         return redirect(url_for('estoque.estoque_mov', produto_q=termo_busca_hidden))
-=======
-from flask import Blueprint, render_template
-
-estoque_bp = Blueprint('estoque', __name__)
-
-@estoque_bp.route('/estoque_mov')
-def estoque_mov():
-    return render_template('admin_estoque.html')
->>>>>>> ed3be1c1c14e2ee98577c53a7ba36ca17ee8898e
