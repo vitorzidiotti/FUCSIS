@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Gerenciar Vendas{% endblock %}
+
+{% block content %}
+<h1>Registro de Vendas</h1>
+
+<div class="toolbar">
+    <a href="{{ url_for('venda.adicionar_venda') }}" class="btn btn-green">Registrar Nova Venda</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID Venda</th>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Vendedor</th>
+                <th class="text-center">Valor Total</th>
+                <th class="text-center">Itens Vendidos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if vendas %}
+                {% for venda in vendas %}
+                <tr>
+                    <td data-label="ID Venda">{{ venda.id_venda }}</td>
+                    <td data-label="Data">{{ venda.data_venda.split('T')[0] }}</td>
+                    <td data-label="Cliente">{{ venda.cliente.nome or 'Cliente Removido' }}</td>
+                    <td data-label="Vendedor">{{ venda.vendedor.nome or 'Vendedor Removido' }}</td>
+                    <td data-label="Valor Total" class="text-center">R$ {{ "%.2f"|format(venda.total)|replace('.', ',') }}</td>
+                    <td data-label="Itens Vendidos" class="text-center">
+                        <a href="{{ url_for('venda.detalhes_venda', id_venda=venda.id_venda) }}" class="btn btn-blue" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                            Ver Itens
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            
+            {% else %}
+            <tr>
+                <td colspan="6" class="no-results">Nenhum registro de venda encontrado.</td>
+            </tr>
+                        {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

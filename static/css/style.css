@@ -611,3 +611,62 @@ body.swal2-toast-shown .swal2-container {
   font-size: 1rem; 
   font-weight: 700; 
 }
+
+/* ==========================================================================
+   10. ESTILOS DA BUSCA DE CLIENTE (Adicionados)
+   ========================================================================== */
+.client-info-box {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.client-info-box h4 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #212529;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.client-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.client-details div {
+  font-size: 0.9rem;
+}
+
+.client-details label {
+  font-weight: 600;
+  color: #495057;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.client-details span {
+  font-size: 1.1em;
+  color: #000;
+}
+
+.client-spending {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+#cpf-feedback {
+  margin-top: 8px;
+  font-size: 0.9em;
+}
+.cpf-error {
+  color: #dc3545;
+}
+.cpf-loading {
+  color: #007bff;
+}
+
