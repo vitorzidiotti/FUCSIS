@@ -1,4 +1,4 @@
-# /api/routes/admin_usuario_routes.py
+import re 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from ..utils.decorators import admin_required, nocache
 from ..controllers import admin_usuario_controller
@@ -24,7 +24,18 @@ def gerenciar_usuarios():
 @admin_required()
 def adicionar_usuario():
     if request.method == 'POST':
-        sucesso, erro = admin_usuario_controller.adicionar_novo_usuario_admin(request.form)
+        
+        # <<< INÍCIO DA CORREÇÃO >>>
+        # 1. Copia o formulário imutável para um dicionário mutável
+        form_data = request.form.to_dict()
+        
+        # 2. Limpa o campo CPF (remove pontos e traço) se ele existir
+        if 'cpf' in form_data:
+            form_data['cpf'] = re.sub(r'\D', '', form_data['cpf'])
+        
+        # 3. Passa o dicionário 'form_data' (limpo) para o controller
+        sucesso, erro = admin_usuario_controller.adicionar_novo_usuario_admin(form_data)
+        # <<< FIM DA CORREÇÃO >>>
         
         if sucesso:
             flash("Usuário administrador adicionado com sucesso!", "sucesso")
@@ -38,7 +49,18 @@ def adicionar_usuario():
 @admin_required()
 def editar_usuario(id_usuario):
     if request.method == 'POST':
-        sucesso, erro = admin_usuario_controller.atualizar_usuario_admin(id_usuario, request.form)
+
+        # <<< INÍCIO DA CORREÇÃO >>>
+        # 1. Copia o formulário imutável para um dicionário mutável
+        form_data = request.form.to_dict()
+        
+        # 2. Limpa o campo CPF (remove pontos e traço) se ele existir
+        if 'cpf' in form_data:
+            form_data['cpf'] = re.sub(r'\D', '', form_data['cpf'])
+        
+        # 3. Passa o dicionário 'form_data' (limpo) para o controller
+        sucesso, erro = admin_usuario_controller.atualizar_usuario_admin(id_usuario, form_data)
+        # <<< FIM DA CORREÇÃO >>>
         
         if sucesso:
             flash("Usuário atualizado com sucesso!", "sucesso")
@@ -46,6 +68,7 @@ def editar_usuario(id_usuario):
         else:
             flash(erro, "erro")
 
+    # Lógica do GET (permanece igual)
     usuario, erro = admin_usuario_controller.get_usuario_por_id(id_usuario)
     if erro:
         flash(erro, "erro")
