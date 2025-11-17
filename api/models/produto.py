@@ -7,7 +7,7 @@ class Produto:
     id_produto: int
     nome: str [50]
     preco: float
-    estoque: int
+    estoque: float
     criado_em: str
     marca: str [50]
     validade: str [50]

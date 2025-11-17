@@ -1,7 +1,6 @@
 # /api/routes/admin_venda_routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from ..utils.decorators import admin_required, nocache
-# CORREÇÃO AQUI: Trocamos cliente por usuario
 from ..controllers import admin_venda_controller, admin_produto_controller, admin_usuario_controller
 
 venda_bp = Blueprint(
@@ -32,13 +31,9 @@ def adicionar_venda():
             return redirect(url_for('venda.gerenciar_vendas'))
         else:
             flash(f"Erro ao registrar venda: {erro}", "erro")
-            return redirect(url_for('venda.adicionar_venda'))
-
-    # --- Se for GET, carrega os produtos e clientes ---
-    
+            return redirect(url_for('venda.adicionar_venda'))    
     produtos, erro_prod = admin_produto_controller.get_produtos_ativos_para_venda()
     
-    # CORREÇÃO AQUI: Usamos a nova função para buscar clientes da tabela de usuários
     clientes, erro_cli = admin_usuario_controller.listar_apenas_clientes() 
     
     if erro_prod:

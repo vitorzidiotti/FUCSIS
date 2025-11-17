@@ -31,8 +31,7 @@ def adicionar_novo_usuario_admin(dados_formulario):
         email = dados_formulario.get('email')
         cpf = dados_formulario.get('cpf')
         senha = dados_formulario.get('senha')
-        is_admin = dados_formulario.get('is_admin') == 'on' # Checkbox
-
+        is_admin = dados_formulario.get('is_admin') == 'on'
         cpf_limpo = re.sub(r'\D', '', cpf)
         
         existing = supabase.table("tb_usuario").select("id_usuario").or_(f"cpf.eq.{cpf_limpo},email.eq.{email}").execute().data
@@ -64,7 +63,6 @@ def atualizar_usuario_admin(id_usuario, dados_formulario):
             'cpf': dados_formulario.get('cpf') 
         }
         
-        # Opcional: Atualizar senha se ela for fornecida
         senha = dados_formulario.get('senha')
         if senha:
             senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')

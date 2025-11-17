@@ -15,7 +15,6 @@ def login_usuario(email_input, senha_input):
         stored_senha_hash = usuario['senha'].encode('utf-8')
         
         if bcrypt.checkpw(senha_input.encode('utf-8'), stored_senha_hash):
-            # Não retorne a senha!
             dados_sessao = {
                 'id_usuario': usuario['id_usuario'],
                 'nome_usuario': usuario['nome'],
@@ -26,7 +25,7 @@ def login_usuario(email_input, senha_input):
             return None, "Email ou senha incorretos."
             
     except Exception as e:
-        print(f"Erro no login_usuario: {e}") # Logar o erro no console
+        print(f"Erro no login_usuario: {e}") 
         return None, f"Ocorreu um erro no servidor: {e}"
 
 def cadastrar_usuario(dados_formulario):
@@ -39,15 +38,12 @@ def cadastrar_usuario(dados_formulario):
 
         cpf_limpo = re.sub(r'\D', '', cpf)
         
-        # 1. Verificar se CPF ou Email já existem
         existing_user = supabase.table("tb_usuario").select("id_usuario").or_(f"cpf.eq.{cpf_limpo},email.eq.{email}").limit(1).execute()
         if existing_user.data:
             return None, 'Este CPF ou Email já está cadastrado.'
         
-        # 2. Criar o hash da senha
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
-        # 3. Inserir o novo usuário (sempre como não-admin)
         supabase.table("tb_usuario").insert({
             "nome": nome, 
             "cpf": cpf_limpo, 
@@ -55,8 +51,6 @@ def cadastrar_usuario(dados_formulario):
             "senha": senha_hash, 
             "is_admin": False
         }).execute()
-        
-        # 4. Buscar os dados do usuário recém-criado para iniciar a sessão
         result = supabase.table("tb_usuario").select("id_usuario, nome, is_admin").eq("email", email).limit(1).execute()
         if result.data:
             usuario = result.data[0]

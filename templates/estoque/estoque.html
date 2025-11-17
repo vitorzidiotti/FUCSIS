@@ -1,133 +1,246 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}Gerenciar Estoque{% endblock %} {% block content %}
+<h1>Gerenciar Estoque</h1>
+<div class="toolbar">
+  <form
+    class="search-form"
+    method="GET"
+    action="{{ url_for('estoque.estoque_mov') }}"
+  >
+    <input
+      type="text"
+      name="produto_q"
+      placeholder="Buscar produto por nome, marca ou lote..."
+      value="{{ termo_busca_produto or '' }}"
+    />
+    <button type="submit" class="btn btn-blue">Pesquisar</button>
+  </form>
+</div>
 
-{% block title %}Controle de Estoque{% endblock %}
+{% if produtos_encontrados %}
+<div class="adjustment-summary" style="margin-bottom: 20px; text-align: right">
+  <button type="button" class="btn btn-green" id="btn-abrir-modal-ajuste">
+    Ajustar Selecionados
+  </button>
+</div>
+{% endif %}
 
-{% block content %}
-    <h1>Controle de Estoque</h1>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 40px">
+          <input type="checkbox" id="select-all-checkbox" title="Selecionar Todos" />
+        </th>
+        <th>Nome</th>
+        <th>Marca</th>
+        <th>Lote</th>
+        <th class="text-center">Estoque Atual</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if produtos_encontrados %} {% for produto in produtos_encontrados %}
+      <tr>
+        <td data-label="Selecionar">
+          <input
+            type="checkbox"
+            name="produto_ids"
+            class="produto-checkbox"
+            value="{{ produto.id_produto }}"
+            data-nome="{{ produto.nome }}"
+            data-marca="{{ produto.marca or '' }}"
+          />
+        </td>
+        <td data-label="Nome">{{ produto.nome }}</td>
+        <td data-label="Marca">{{ produto.marca or '-' }}</td>
+        <td data-label="Lote">{{ produto.lote or '-' }}</td>
+        <td data-label="Estoque Atual" class="text-center">
+          {{ produto.estoque }}
+        </td>
+      </tr>
+      {% endfor %} {% else %}
+      <tr>
+        <td colspan="5" class="no-results">
+          {% if termo_busca_produto %} Nenhum produto encontrado com o termo "{{
+          termo_busca_produto }}". {% else %} Digite um termo acima para buscar
+          produtos e gerenciar o estoque. {% endif %}
+        </td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
 
-    {# --- Formulário de Movimentação --- #}
-    <div class="form-container" style="background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); margin-bottom: 2rem;">
-        <h2>Registrar Movimentação</h2>
-        {# CORRIGIDO: Adicionado 'estoque.' ao url_for #}
-        <form action="{{ url_for('estoque.adicionar_movimento') }}" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
+<hr style="margin-top: 40px" />
+<h2>Histórico de Movimentações</h2>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Produto</th>
+        <th>Marca</th>
+        <th>Tipo</th>
+        <th>Quantidade</th>
+        <th>Motivo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if movimentos %} {% for mov in movimentos %}
+      <tr>
+        <td data-label="Data">{{ mov.criado_em }}</td>
+        <td data-label="Produto">{{ mov.tb_produto.nome }}</td>
+        <td data-label="Marca">{{ mov.tb_produto.marca or '-' }}</td>
+        <td
+          data-label="Tipo"
+          class="{% if mov.tipo_mov == 'ENTRADA' %}text-green{% else %}text-red{% endif %}"
+        >
+          {{ mov.tipo_mov }}
+        </td>
+        <td data-label="Quantidade">{{ mov.quantidade }}</td>
+        <td data-label="Motivo">{{ mov.motivo or '-' }}</td>
+      </tr>
+      {% endfor %} {% else %}
+      <tr>
+        <td colspan="5" class="no-results">Nenhuma movimentação registrada.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
 
-            <div>
-                <label for="id_produto">Produto:</label>
-                <select id="id_produto" name="id_produto" required>
-                    <option value="" disabled selected>Selecione um produto...</option>
-                    {# Assume que 'produtos' (lista de todos produtos) é passado pela rota #}
-                    {% for produto in produtos %}
-                        <option value="{{ produto.id_produto }}">{{ produto.nome }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+{% if total_pages > 1 %}
+<div class="pagination">
+  {% if page > 1 %}
+  <a
+    href="{{ url_for('estoque.estoque_mov', page=page-1, produto_q=termo_busca_produto) }}"
+    class="btn btn-grey"
+    >Anterior</a
+  >
+  {% endif %}
+  <span>Página {{ page }} de {{ total_pages }}</span>
+  {% if page < total_pages %}
+  <a
+    href="{{ url_for('estoque.estoque_mov', page=page+1, produto_q=termo_busca_produto) }}"
+    class="btn btn-grey"
+    >Próxima</a
+  >
+  {% endif %}
+</div>
+{% endif %}
 
-            <div>
-                <label for="tipo_mov">Tipo de Movimento:</label>
-                <select id="tipo_mov" name="tipo_mov" required>
-                    <option value="ENTRADA">Entrada</option>
-                    <option value="SAIDA">Saída</option>
-                </select>
-            </div>
+<div id="modal-ajuste" class="modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h2>Ajustar Estoque dos Produtos Selecionados</h2>
+    <form
+      id="form-modal-ajuste"
+      method="POST"
+      action="{{ url_for('estoque.salvar_ajustes_individuais') }}"
+    >
+      <input
+        type="hidden"
+        name="termo_busca_hidden"
+        value="{{ termo_busca_produto or '' }}"
+      />
+      <div id="produtos-selecionados-container">
+        <p>Carregando produtos...</p>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-green">Salvar Ajustes</button>
+        <button type="button" class="btn btn-yellow close-button">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
-            <div>
-                <label for="quantidade">Quantidade:</label>
-                <input type="number" id="quantidade" name="quantidade" min="1" required>
-            </div>
-
-            <div style="grid-column: 1 / -1;">
-                <label for="motivo">Motivo/Observação:</label> {# Texto do label ajustado #}
-                <input type="text" id="motivo" name="motivo" placeholder="Ex: Compra NF 123, Ajuste, Venda ID 45" required>
-            </div>
-
-            <button type="submit" class="btn btn-green" style="grid-column: 1 / -1;">Registrar Movimento</button>
-        </form>
-    </div>
-
-    {# --- Tabela de Histórico --- #}
-    <div class="table-container">
-        <h2>Histórico de Movimentações (Últimas 10 por página)</h2> {# Título ajustado #}
-        <table>
-            <thead>
-                <tr>
-                    <th>Produto</th>
-                    <th>Tipo</th>
-                    <th>Quantidade</th>
-                    <th>Data</th> {# Aplicaremos filtro de data BR aqui também #}
-                </tr>
-            </thead>
-            <tbody>
-                {% if movimentos %}
-                    {% for mov in movimentos %}
-                    <tr>
-                        {# Verifica se tb_produto existe e tem nome #}
-                        <td data-label="Produto">{{ mov.tb_produto.nome if mov.tb_produto and 'nome' in mov.tb_produto else 'Produto não encontrado' }}</td>
-                        <td data-label="Tipo">
-                            <span style="font-weight: bold; color: {{ '#28a745' if mov.tipo_mov == 'ENTRADA' else '#dc3545' }};">
-                                {{ mov.tipo_mov }}
-                            </span>
-                        </td>
-                        <td data-label="Quantidade">{{ mov.quantidade }}</td>
-                        {# Aplica filtro para formatar data/hora (se existir) #}
-                        <td data-label="Data">{{ mov.criado_em | format_br_datetime if mov.criado_em else '-'}}</td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="5" class="no-results">
-                            Nenhuma movimentação de estoque registrada.
-                        </td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
-
-        {# --- ADICIONADO: Controles de Paginação --- #}
-        {% if total_pages > 1 %}
-        <div class="pagination" style="margin-top: 1.5rem; text-align: center;">
-            {# Botão Anterior #}
-            {% if page > 1 %}
-                <a href="{{ url_for('estoque.estoque_mov', page=page-1) }}" class="btn btn-blue" style="margin-right: 0.5rem;">&laquo; Anterior</a>
-            {% else %}
-                <span class="btn btn-blue" style="margin-right: 0.5rem; opacity: 0.5; cursor: default;">&laquo; Anterior</span>
-            {% endif %}
-
-            {# Informação da Página Atual #}
-            <span style="margin: 0 1rem; font-weight: bold;">Página {{ page }} de {{ total_pages }}</span>
-
-            {# Botão Próximo #}
-            {% if page < total_pages %}
-                <a href="{{ url_for('estoque.estoque_mov', page=page+1) }}" class="btn btn-blue" style="margin-left: 0.5rem;">Próximo &raquo;</a>
-            {% else %}
-                <span class="btn btn-blue" style="margin-left: 0.5rem; opacity: 0.5; cursor: default;">Próximo &raquo;</span>
-            {% endif %}
-        </div>
-        {% endif %}
-        {# --- FIM DA PAGINAÇÃO --- #}
-
-    </div>
-{% endblock %}
-
-{% block scripts %}
-{# Adiciona um script simples para formatar a data/hora, caso o filtro Jinja não seja criado #}
-{# Se criar o filtro Jinja 'format_br_datetime', este script não é necessário #}
 <script>
- document.addEventListener('DOMContentLoaded', function() {
-  const dateCells = document.querySelectorAll('td[data-label="Data"]');
-  dateCells.forEach(cell => {
-   const isoDateTime = cell.textContent.trim();
-   if (isoDateTime && isoDateTime !== '-') {
-    try {
-     const dateObj = new Date(isoDateTime);
-     // Formata para DD/MM/YYYY HH:MM
-     const formatted = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-     cell.textContent = formatted;
-    } catch (e) {
-     console.error("Erro ao formatar data:", isoDateTime, e);
-     // Deixa o valor original se der erro
+  document.addEventListener("DOMContentLoaded", function () {
+    const selectAllCheckbox = document.getElementById("select-all-checkbox");
+    const productCheckboxes = document.querySelectorAll(".produto-checkbox");
+    const btnAbrirModalAjuste = document.getElementById("btn-abrir-modal-ajuste");
+    const modal = document.getElementById("modal-ajuste");
+    const closeButtons = document.querySelectorAll(".close-button");
+    const produtosSelecionadosContainer = document.getElementById(
+      "produtos-selecionados-container"
+    );
+
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener("change", function (e) {
+        productCheckboxes.forEach((checkbox) => {
+          checkbox.checked = e.target.checked;
+        });
+      });
     }
-   }
+
+    if (btnAbrirModalAjuste) {
+      btnAbrirModalAjuste.addEventListener("click", function () {
+        const selectedProducts = Array.from(productCheckboxes)
+          .filter((checkbox) => checkbox.checked)
+          .map((checkbox) => ({
+            id: checkbox.value,
+            nome: checkbox.dataset.nome,
+            marca: checkbox.dataset.marca || "-",
+          }));
+
+        if (selectedProducts.length === 0) {
+          alert("Por favor, selecione pelo menos um produto para ajustar.");
+          return;
+        }
+
+        produtosSelecionadosContainer.innerHTML = "";
+        let htmlContent = "";
+
+        selectedProducts.forEach((produto) => {
+          htmlContent += `
+            <div class="product-adjustment-item">
+                <input type="hidden" name="produto_id[]" value="${produto.id}">
+                
+                <strong>${produto.nome} <small>(${produto.marca})</small></strong>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <input type="radio" name="tipo_mov_${produto.id}" value="ENTRADA" id="entrada_${produto.id}" required>
+                        <label for="entrada_${produto.id}">Entrada</label>
+                    </div>
+                    
+                    <div class="control-group">
+                        <input type="radio" name="tipo_mov_${produto.id}" value="SAIDA" id="saida_${produto.id}" required>
+                        <label for="saida_${produto.id}">Saída</label>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="quantidade_${produto.id}">Qtd:</label>
+                        <input type="number" name="quantidade_${produto.id}" id="quantidade_${produto.id}" min="1" value="1" required>
+                    </div>
+                </div>
+
+                <div class="reason-group">
+                    <label for="motivo_${produto.id}">Motivo:</label>
+                    <input type="text" name="motivo_${produto.id}" id="motivo_${produto.id}" placeholder="Motivo do ajuste" required>
+                </div>
+            </div>
+            `;
+        });
+
+        produtosSelecionadosContainer.innerHTML = htmlContent;
+        modal.style.display = "flex";
+      });
+    }
+
+    closeButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        modal.style.display = "none";
+      });
+    });
+
+    window.addEventListener("click", function (event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    });
   });
- });
 </script>
 {% endblock %}

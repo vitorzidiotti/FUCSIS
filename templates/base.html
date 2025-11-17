@@ -21,11 +21,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Usa "delegação de eventos" para funcionar com conteúdo que muda (como a busca dinâmica)
             document.body.addEventListener('submit', function(event) {
-                // Se o formulário enviado tiver a classe .delete-form
                 if (event.target.matches('.delete-form')) {
-                    event.preventDefault(); // Impede o envio normal
+                    event.preventDefault();
                     const form = event.target;
                     
                     Swal.fire({
@@ -39,7 +37,7 @@
                         cancelButtonText: 'Cancelar'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            form.submit(); // Se confirmar, envia o formulário
+                            form.submit();
                         }
                     });
                 }

@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from typing import Optional, List
 # Importe os outros modelos se quiser aninhar os dados
 from .usuario import Usuario
-from .cliente import Cliente
-
 @dataclass
 class VendaItem:
     id_venda_item: int
@@ -22,5 +20,4 @@ class Venda:
     data_venda: str
     total: float
     tb_usuario: Optional[Usuario] = None 
-    tb_cliente: Optional[Cliente] = None
     itens_da_venda: List[VendaItem] = None

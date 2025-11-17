@@ -5,7 +5,7 @@ from ..controllers import admin_usuario_controller
 
 usuario_bp = Blueprint(
     'usuario', __name__,
-    template_folder='../../templates/usuario' # Pasta dos templates (ex: gerenciar_usuarios.html)
+    template_folder='../../templates/usuario' 
 )
 
 @usuario_bp.route('/')
@@ -46,7 +46,6 @@ def editar_usuario(id_usuario):
         else:
             flash(erro, "erro")
 
-    # Se for GET ou se o POST falhar
     usuario, erro = admin_usuario_controller.get_usuario_por_id(id_usuario)
     if erro:
         flash(erro, "erro")

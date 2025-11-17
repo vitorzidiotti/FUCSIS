@@ -6,13 +6,11 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <!-- Cabeçalho semelhante ao admin -->
     <header class="header-nav">
     <a href="{{ url_for('main.perfil') }}" class="btn btn-green">Meu Perfil</a>
     <a href="{{ url_for('auth.logout') }}" class="btn btn-red">Sair</a>
     </header>
 
-    <!-- Mensagem de boas-vindas -->
     <main class="main-container">
         <div class="welcome-header">
             <h1>Bem-vindo(a), {{ session.get('nome_usuario', 'Usuário') }}!</h1>

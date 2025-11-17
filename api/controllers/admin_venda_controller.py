@@ -1,7 +1,7 @@
 # /api/controllers/admin_venda_controller.py
 from ..database import supabase
-from . import admin_estoque_controller # Importa o controller de estoque
-from . import admin_produto_controller # Importa o controller de produto
+from . import admin_estoque_controller
+from . import admin_produto_controller
 
 def listar_vendas():
     """ Lista o histórico de vendas. """
@@ -17,7 +17,6 @@ def processar_nova_venda(id_usuario_logado, dados_formulario):
     try:
         produtos_selecionados = dados_formulario.getlist('produtos[]')
         quantidades = dados_formulario.getlist('quantidades[]')
-        # NOTA: O seu form precisa ter um campo 'id_cliente'
         id_cliente = dados_formulario.get('id_cliente') 
 
         if not id_cliente:
@@ -25,7 +24,6 @@ def processar_nova_venda(id_usuario_logado, dados_formulario):
         if not produtos_selecionados:
             return False, "Nenhum produto selecionado."
 
-        # --- Etapa 1: Pré-verificação de estoque e cálculo de total ---
         itens_para_venda = []
         valor_total_venda = 0
         
@@ -33,7 +31,7 @@ def processar_nova_venda(id_usuario_logado, dados_formulario):
             id_produto = int(id_produto_str)
             qtd = int(quantidades[i])
             if qtd <= 0:
-                continue # Ignora produtos com quantidade 0
+                continue
 
             produto_data, erro = admin_produto_controller.get_produto_por_id(id_produto)
             if erro or not produto_data:
@@ -55,21 +53,15 @@ def processar_nova_venda(id_usuario_logado, dados_formulario):
         if not itens_para_venda:
             return False, "Nenhum item com quantidade válida."
 
-        # --- Etapa 2: Criar o "Cabeçalho" da Venda ---
         nova_venda_dados = {
             "id_usuario": id_usuario_logado,
             "id_cliente": int(id_cliente),
             "valor_total": valor_total_venda
-            # "data_venda" é automática (now()) no Supabase
         }
         venda_criada = supabase.table("tb_venda").insert(nova_venda_dados).execute().data[0]
         id_venda_nova = venda_criada['id_venda']
 
-        # --- Etapa 3: Inserir Itens da Venda e Dar Baixa no Estoque ---
-        # (Novamente, sem transações, isso é perigoso. Se falhar no meio,
-        # o estoque ficará errado)
         for item in itens_para_venda:
-            # 3a. Inserir o item na tb_venda_item
             item_dados = {
                 "id_venda": id_venda_nova,
                 "id_produto": item['id_produto'],
@@ -77,8 +69,6 @@ def processar_nova_venda(id_usuario_logado, dados_formulario):
                 "preco_unitario": item['preco_unitario']
             }
             supabase.table("tb_venda_item").insert(item_dados).execute()
-            
-            # 3b. Chamar o controlador de estoque para dar baixa
             motivo_baixa = f"Venda ID: {id_venda_nova}"
             admin_estoque_controller.adicionar_movimento_estoque(
                 id_produto=item['id_produto'],
@@ -86,13 +76,10 @@ def processar_nova_venda(id_usuario_logado, dados_formulario):
                 quantidade=item['quantidade'],
                 motivo=motivo_baixa
             )
-            
-        return True, None # Sucesso!
+        return True, None 
 
     except Exception as e:
         print(f"Erro no processar_nova_venda: {e}")
-        # Tentar deletar a venda recém-criada se algo deu errado
-        # (Lógica de rollback manual)
         if 'id_venda_nova' in locals():
             supabase.table("tb_venda_item").delete().eq("id_venda", id_venda_nova).execute()
             supabase.table("tb_venda").delete().eq("id_venda", id_venda_nova).execute()

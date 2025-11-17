@@ -20,7 +20,7 @@ def login_required():
         def decorated_function(*args, **kwargs):
             if 'logged_in' not in session:
                 flash('Por favor, faça login para acessar esta página.', 'erro')
-                return redirect(url_for('auth.login')) # Note a mudança: 'auth.login'
+                return redirect(url_for('auth.login'))
             return f(*args, **kwargs)
         return decorated_function
     return wrapper
@@ -31,10 +31,10 @@ def admin_required():
         def decorated_function(*args, **kwargs):
             if 'logged_in' not in session:
                 flash('Por favor, faça login para acessar esta página.', 'erro')
-                return redirect(url_for('auth.login')) # Note a mudança: 'auth.login'
+                return redirect(url_for('auth.login'))
             if not session.get('is_admin'):
                 flash('Você não tem permissão para acessar esta página.', 'erro')
-                return redirect(url_for('main.inicio')) # Note a mudança: 'main.inicio'
+                return redirect(url_for('main.inicio'))
             return f(*args, **kwargs)
         return decorated_function
     return wrapper
