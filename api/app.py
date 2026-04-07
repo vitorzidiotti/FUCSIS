@@ -2,25 +2,32 @@ import os
 import datetime
 import bcrypt
 import re
-from flask import Flask, request, jsonify, redirect, url_for, session, render_template, flash, make_response
-from functools import wraps, update_wrapper
+from flask import (
+    Flask, Blueprint, request, jsonify, redirect, 
+    url_for, session, render_template, flash, make_response
+)
+from functools import wraps
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
 # --- CONFIGURAÇÃO INICIAL ---
 load_dotenv()
 
+# Configurações do Supabase
 url: str = os.getenv("SUPABASE_URL")
 key: str = os.getenv("SUPABASE_KEY")
 
 if not url or not key:
-    raise ValueError("Erro: As variáveis SUPABASE_URL e SUPABASE_KEY não foram encontradas. Verifique seu arquivo .env.")
+    raise ValueError("Erro: Variáveis SUPABASE_URL ou SUPABASE_KEY não encontradas no .env.")
+
 supabase: Client = create_client(url, key)
+
+# Configuração da App Flask
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "uma-chave-secreta-padrao-muito-segura")
 
-
 # --- DECORATORS E FUNÇÕES HELPER ---
+
 def nocache(view):
     @wraps(view)
     def no_cache(*args, **kwargs):
@@ -30,7 +37,7 @@ def nocache(view):
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '-1'
         return response
-    return update_wrapper(no_cache, view)
+    return no_cache
 
 def login_required():
     def wrapper(f):
@@ -57,14 +64,15 @@ def admin_required():
         return decorated_function
     return wrapper
 
-# --- ROTAS PÚBLICAS (LOGIN, CADASTRO, LOGOUT) ---
+# --- ROTAS PÚBLICAS ---
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email_input = request.form.get('email')
         senha_input = request.form.get('senha')
         try:
-            result = supabase.table("tb_usuario").select("id_usuario, nome, senha, is_admin").eq("email", email_input).limit(1).execute()
+            result = supabase.table("usuario").select("id_usuario, nome, senha, is_admin").eq("email", email_input).limit(1).execute()
             if result.data:
                 usuario = result.data[0]
                 stored_senha_hash = usuario['senha'].encode('utf-8')
@@ -74,7 +82,7 @@ def login():
                     session['nome_usuario'] = usuario['nome']
                     session['is_admin'] = usuario.get('is_admin', False)
                     flash(f"Bem-vindo(a), {usuario['nome']}!", 'sucesso')
-                    return redirect(url_for('admin_dashboard')) if session.get('is_admin') else redirect(url_for('inicio'))
+                    return redirect(url_for('admin_dashboard')) if session['is_admin'] else redirect(url_for('inicio'))
             flash('Email ou senha incorretos.', 'erro')
         except Exception as e:
             flash(f'Ocorreu um erro: {e}', 'erro')
@@ -87,27 +95,52 @@ def cadastro():
         cpf = request.form.get('cpf')
         email = request.form.get('email')
         senha = request.form.get('senha')
+
+        # Validação básica
+        if not nome or not cpf or not email or not senha:
+            flash("Preencha todos os campos.", "erro")
+            return render_template('cadastro.html')
+
         try:
             cpf_limpo = re.sub(r'\D', '', cpf)
-            existing_user = supabase.table("tb_usuario").select("cpf").eq("cpf", cpf_limpo).limit(1).execute()
+
+            # Verifica CPF OU EMAIL
+            existing_user = supabase.table("usuario")\
+                .select("id_usuario")\
+                .or_(f"cpf.eq.{cpf_limpo},email.eq.{email}")\
+                .execute()
+
             if existing_user.data:
-                flash('Este CPF já está cadastrado.', 'erro')
+                flash('CPF ou Email já cadastrados.', 'erro')
                 return render_template('cadastro.html')
-            
-            senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            supabase.table("tb_usuario").insert({"nome": nome, "cpf": cpf_limpo, "email": email, "senha": senha_hash, "is_admin": False}).execute()
-            
-            result = supabase.table("tb_usuario").select("id_usuario, nome, is_admin").eq("email", email).limit(1).execute()
-            if result.data:
-                usuario = result.data[0]
-                session['logged_in'] = True
-                session['id_usuario'] = usuario['id_usuario']
-                session['nome_usuario'] = usuario['nome']
-                session['is_admin'] = usuario.get('is_admin', False)
-                flash(f"Bem-vindo(a), {usuario['nome']}! Cadastro realizado.", 'sucesso')
-                return redirect(url_for('inicio'))
+
+            # Hash da senha
+            senha_hash = bcrypt.hashpw(
+                senha.encode('utf-8'),
+                bcrypt.gensalt()
+            ).decode('utf-8')
+
+            # INSERT
+            response = supabase.table("usuario").insert({
+                "nome": nome,
+                "cpf": cpf_limpo,
+                "email": email,
+                "senha": senha_hash,
+                "is_admin": False
+            }).execute()
+
+            # 🔴 VALIDAÇÃO DO INSERT
+            if not response.data:
+                flash("Erro ao inserir no banco.", "erro")
+                return render_template('cadastro.html')
+
+            flash("Cadastro realizado com sucesso!", "sucesso")
+            return redirect(url_for('login'))
+
         except Exception as e:
-            flash(f'Ocorreu um erro ao cadastrar: {e}', 'erro')
+            print("ERRO CADASTRO:", e)
+            flash(f"Erro ao cadastrar: {e}", "erro")
+
     return render_template('cadastro.html')
 
 @app.route('/logout')
@@ -133,7 +166,7 @@ def inicio():
 def perfil():
     user_id = session.get('id_usuario')
     try:
-        current_user_data = supabase.table("tb_usuario").select("*").eq("id_usuario", user_id).single().execute().data
+        current_user_data = supabase.table("usuario").select("*").eq("id_usuario", user_id).single().execute().data
     except Exception as e:
         flash(f'Não foi possível carregar os dados do perfil: {e}', 'erro')
         return redirect(url_for('inicio'))
@@ -158,7 +191,7 @@ def admin_dashboard():
 def gerenciar_usuarios():
     termo_busca = request.args.get('busca', '').strip()
     try:
-        query = supabase.table("tb_usuario").select("*").order("nome")
+        query = supabase.table("usuario").select("*").order("nome")
         if termo_busca:
             query = query.ilike('nome', f'%{termo_busca}%')
         usuarios = query.execute().data
@@ -179,13 +212,13 @@ def adicionar_usuario():
             is_admin = True
             
             cpf_limpo = re.sub(r'\D', '', cpf)
-            existing = supabase.table("tb_usuario").select("id_usuario").or_(f"cpf.eq.{cpf_limpo},email.eq.{email}").execute().data
+            existing = supabase.table("usuario").select("id_usuario").or_(f"cpf.eq.{cpf_limpo},email.eq.{email}").execute().data
             if existing:
                 flash("Já existe um usuário com este CPF ou Email.", "erro")
                 return render_template('adicionar_usuario.html')
 
             senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            supabase.table("tb_usuario").insert({"nome": nome, "email": email, "cpf": cpf_limpo, "senha": senha_hash, "is_admin": is_admin}).execute()
+            supabase.table("usuario").insert({"nome": nome, "email": email, "cpf": cpf_limpo, "senha": senha_hash, "is_admin": is_admin}).execute()
             flash("Usuário administrador adicionado com sucesso!", "sucesso")
             return redirect(url_for('gerenciar_usuarios'))
         except Exception as e:
@@ -196,7 +229,7 @@ def adicionar_usuario():
 @admin_required()
 def editar_usuario(id_usuario):
     try:
-        usuario = supabase.table("tb_usuario").select("*").eq("id_usuario", id_usuario).single().execute().data
+        usuario = supabase.table("usuario").select("*").eq("id_usuario", id_usuario).single().execute().data
     except Exception as e:
         flash(f"Erro ao carregar usuário: {e}", "erro")
         return redirect(url_for('gerenciar_usuarios'))
@@ -205,7 +238,7 @@ def editar_usuario(id_usuario):
         try:
             dados = {'nome': request.form.get('nome'), 'email': request.form.get('email'), 'is_admin': request.form.get('is_admin') == 'on'}
             # (Lógica completa de validação de CPF/email e atualização de senha aqui)
-            supabase.table("tb_usuario").update(dados).eq("id_usuario", id_usuario).execute()
+            supabase.table("usuario").update(dados).eq("id_usuario", id_usuario).execute()
             flash("Usuário atualizado com sucesso!", "sucesso")
             return redirect(url_for('gerenciar_usuarios'))
         except Exception as e:
@@ -219,7 +252,7 @@ def excluir_usuario(id_usuario):
         flash("Você não pode excluir sua própria conta.", "erro")
         return redirect(url_for('gerenciar_usuarios'))
     try:
-        supabase.table("tb_usuario").delete().eq("id_usuario", id_usuario).execute()
+        supabase.table("usuario").delete().eq("id_usuario", id_usuario).execute()
         flash("Usuário excluído com sucesso!", "sucesso")
     except Exception as e:
         flash(f"Erro ao excluir usuário: {e}", "erro")
@@ -369,7 +402,7 @@ def excluir_cliente(id_cliente):
 @nocache
 def gerenciar_vendas():
     try:
-        vendas_response = supabase.table("tb_venda").select("*, tb_usuario(nome)").order("data_venda", desc=True).execute()
+        vendas_response = supabase.table("tb_venda").select("*, usuario(nome)").order("data_venda", desc=True).execute()
         return render_template('gerenciar_vendas.html', vendas=vendas_response.data)
     except Exception as e:
         flash("Não foi possível carregar a lista de vendas.", "erro")

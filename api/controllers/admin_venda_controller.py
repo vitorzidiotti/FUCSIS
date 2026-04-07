@@ -6,7 +6,7 @@ from . import admin_produto_controller
 def listar_vendas():
     """ Lista o histórico de vendas. """
     try:
-        vendas = supabase.table("tb_venda").select("*, tb_usuario(nome)").order("data_venda", desc=True).execute()
+        vendas = supabase.table("venda").select("*, usuario(nome)").order("data_venda", desc=True).execute()
         return vendas.data, None
     except Exception as e:
         print(f"Erro no listar_vendas: {e}")
@@ -58,7 +58,7 @@ def processar_nova_venda(id_usuario_logado, dados_formulario):
             "id_cliente": int(id_cliente),
             "valor_total": valor_total_venda
         }
-        venda_criada = supabase.table("tb_venda").insert(nova_venda_dados).execute().data[0]
+        venda_criada = supabase.table("venda").insert(nova_venda_dados).execute().data[0]
         id_venda_nova = venda_criada['id_venda']
 
         for item in itens_para_venda:
@@ -68,7 +68,7 @@ def processar_nova_venda(id_usuario_logado, dados_formulario):
                 "quantidade": item['quantidade'],
                 "preco_unitario": item['preco_unitario']
             }
-            supabase.table("tb_venda_item").insert(item_dados).execute()
+            supabase.table("venda_item").insert(item_dados).execute()
             motivo_baixa = f"Venda ID: {id_venda_nova}"
             admin_estoque_controller.adicionar_movimento_estoque(
                 id_produto=item['id_produto'],
@@ -81,7 +81,7 @@ def processar_nova_venda(id_usuario_logado, dados_formulario):
     except Exception as e:
         print(f"Erro no processar_nova_venda: {e}")
         if 'id_venda_nova' in locals():
-            supabase.table("tb_venda_item").delete().eq("id_venda", id_venda_nova).execute()
-            supabase.table("tb_venda").delete().eq("id_venda", id_venda_nova).execute()
+            supabase.table("venda_item").delete().eq("id_venda", id_venda_nova).execute()
+            supabase.table("venda").delete().eq("id_venda", id_venda_nova).execute()
             
         return False, f"Ocorreu um erro crítico ao registrar a venda: {e}"

@@ -8,8 +8,8 @@
 </head>
 <body>
     <header class="header-nav">
-        <a href="{{ url_for('main.perfil') }}" class="btn btn-green">Meu Perfil</a>
-        <a href="{{ url_for('auth.logout') }}" class="btn btn-red">Sair</a>
+        <a href="{{ url_for('perfil') }}" class="btn btn-green">Meu Perfil</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-red">Sair</a>
     </header>   
 
     <main class="main-container">
@@ -19,24 +19,24 @@
         </div>
 
         <div class="action-grid">
-            <a href="{{ url_for('usuario.gerenciar_usuarios') }}" class="action-card">
+            <a href="{{ url_for('gerenciar_usuarios') }}" class="action-card">
                 <h2>Gerenciar Usuários</h2>
                 <p>Adicione, edite ou remova admins e clientes.</p>
             </a>
             
-            <a href="{{ url_for('produto.gerenciar_produtos') }}" class="action-card">
+            <a href="{{ url_for('gerenciar_produtos') }}" class="action-card">
                 <h2>Gerenciar Produtos</h2>
                 <p>Adicione ou edite produtos do seu catálogo.</p>
             </a>
-            <a href="{{ url_for('estoque.estoque_mov') }}" class="action-card">
+            <a href="{{ url_for('estoque_mov') }}" class="action-card">
                 <h2>Gerenciar Estoque</h2>
                 <p>Visualize o histórico e faça movimentações.</p>
             </a>
-            <a href="{{ url_for('main.admin_dashboard') }}" class="action-card">
+            <a href="{{ url_for('admin_dashboard') }}" class="action-card">
                 <h2>Novidades em Breve</h2>
                 <p>Tem coisa boa vindo por ai.</p>
             </a>
-            <a href="{{ url_for('main.admin_dashboard') }}" class="action-card">
+            <a href="{{ url_for('admin_dashboard') }}" class="action-card">
                 <h2>Novidades em Breve</h2>
                 <p>Tem coisa boa vindo por ai.</p>
             </a>

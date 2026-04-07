@@ -6,7 +6,7 @@ from ..database import supabase
 def login_usuario(email_input, senha_input):
     """ Tenta logar um usuário. Retorna (dados_usuario, erro). """
     try:
-        result = supabase.table("tb_usuario").select("id_usuario, nome, senha, is_admin").eq("email", email_input).limit(1).execute()
+        result = supabase.table("usuario").select("id_usuario, nome, senha, is_admin").eq("email", email_input).limit(1).execute()
         
         if not result.data:
             return None, "Email ou senha incorretos."
@@ -38,20 +38,20 @@ def cadastrar_usuario(dados_formulario):
 
         cpf_limpo = re.sub(r'\D', '', cpf)
         
-        existing_user = supabase.table("tb_usuario").select("id_usuario").or_(f"cpf.eq.{cpf_limpo},email.eq.{email}").limit(1).execute()
+        existing_user = supabase.table("usuario").select("id_usuario").or_(f"cpf.eq.{cpf_limpo},email.eq.{email}").limit(1).execute()
         if existing_user.data:
             return None, 'Este CPF ou Email já está cadastrado.'
         
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
-        supabase.table("tb_usuario").insert({
+        supabase.table("usuario").insert({
             "nome": nome, 
             "cpf": cpf_limpo, 
             "email": email, 
             "senha": senha_hash, 
             "is_admin": False
         }).execute()
-        result = supabase.table("tb_usuario").select("id_usuario, nome, is_admin").eq("email", email).limit(1).execute()
+        result = supabase.table("usuario").select("id_usuario, nome, is_admin").eq("email", email).limit(1).execute()
         if result.data:
             usuario = result.data[0]
             dados_sessao = {

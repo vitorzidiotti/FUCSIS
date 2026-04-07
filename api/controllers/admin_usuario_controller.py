@@ -6,7 +6,7 @@ from ..database import supabase
 def listar_usuarios(termo_busca):
     """ Lista todos os usuários (admin), com filtro de busca. """
     try:
-        query = supabase.table("tb_usuario").select("*").order("nome")
+        query = supabase.table("usuario").select("*").order("nome")
         if termo_busca:
             query = query.ilike('nome', f'%{termo_busca}%')
         usuarios = query.execute().data
@@ -18,7 +18,7 @@ def listar_usuarios(termo_busca):
 def get_usuario_por_id(id_usuario):
     """ Busca um usuário específico pelo ID. """
     try:
-        usuario = supabase.table("tb_usuario").select("*").eq("id_usuario", id_usuario).single().execute().data
+        usuario = supabase.table("usuario").select("*").eq("id_usuario", id_usuario).single().execute().data
         return usuario, None
     except Exception as e:
         print(f"Erro no get_usuario_por_id: {e}")
@@ -34,13 +34,13 @@ def adicionar_novo_usuario_admin(dados_formulario):
         is_admin = dados_formulario.get('is_admin') == 'on'
         cpf_limpo = re.sub(r'\D', '', cpf)
         
-        existing = supabase.table("tb_usuario").select("id_usuario").or_(f"cpf.eq.{cpf_limpo},email.eq.{email}").execute().data
+        existing = supabase.table("usuario").select("id_usuario").or_(f"cpf.eq.{cpf_limpo},email.eq.{email}").execute().data
         if existing:
             return False, "Já existe um usuário com este CPF ou Email."
 
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
-        supabase.table("tb_usuario").insert({
+        supabase.table("usuario").insert({
             "nome": nome, 
             "email": email, 
             "cpf": cpf_limpo, 
@@ -68,7 +68,7 @@ def atualizar_usuario_admin(id_usuario, dados_formulario):
             senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             dados_update['senha'] = senha_hash
             
-        supabase.table("tb_usuario").update(dados_update).eq("id_usuario", id_usuario).execute()
+        supabase.table("usuario").update(dados_update).eq("id_usuario", id_usuario).execute()
         return True, None
     except Exception as e:
         print(f"Erro no atualizar_usuario_admin: {e}")
@@ -80,7 +80,7 @@ def excluir_usuario_admin(id_usuario_a_excluir, id_usuario_logado):
         if id_usuario_a_excluir == id_usuario_logado:
             return False, "Você não pode excluir sua própria conta."
             
-        supabase.table("tb_usuario").delete().eq("id_usuario", id_usuario_a_excluir).execute()
+        supabase.table("usuario").delete().eq("id_usuario", id_usuario_a_excluir).execute()
         return True, None
     except Exception as e:
         print(f"Erro no excluir_usuario_admin: {e}")
@@ -90,7 +90,7 @@ def excluir_usuario_admin(id_usuario_a_excluir, id_usuario_logado):
 def listar_apenas_clientes():
     """ Lista apenas usuários que são clientes (is_admin=False). """
     try:
-        query = supabase.table("tb_usuario").select("*").eq("is_admin", False).order("nome")
+        query = supabase.table("usuario").select("*").eq("is_admin", False).order("nome")
         clientes = query.execute().data
         return clientes, None
     except Exception as e:
