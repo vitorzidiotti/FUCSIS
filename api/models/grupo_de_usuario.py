@@ -3,10 +3,9 @@ from dataclasses import dataclass
 from datetime import datetime
 
 @dataclass
-class usuario:
-    id_usuario: int
+class grupo_de_usuario:
+    id_grupo: int
     nome: str
-    cpf: str
-    email: str
+    descricao: str
     criado_em: datetime
     criado_por: int 

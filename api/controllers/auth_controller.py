@@ -1,15 +1,16 @@
 # /api/controllers/auth_controller.py
 import bcrypt
 import re
-from ..database import supabase
+from database import supabase
 
 def login_usuario(email_input, senha_input):
     """ Tenta logar um usuário. Retorna (dados_usuario, erro). """
     try:
-        result = supabase.table("usuario").select("id_usuario, nome, senha, is_admin").eq("email", email_input).limit(1).execute()
+        # ATUALIZADO: Usando id_grupo em vez de is_admin
+        result = supabase.table("usuario").select("id_usuario, nome, senha, id_grupo").eq("email", email_input).limit(1).execute()
         
         if not result.data:
-            return None, "Email ou senha incorretos."
+            return None, "Este usuário não está cadastrado."
 
         usuario = result.data[0]
         stored_senha_hash = usuario['senha'].encode('utf-8')
@@ -18,11 +19,11 @@ def login_usuario(email_input, senha_input):
             dados_sessao = {
                 'id_usuario': usuario['id_usuario'],
                 'nome_usuario': usuario['nome'],
-                'is_admin': usuario.get('is_admin', False)
+                'id_grupo': usuario.get('id_grupo') # Guarda o ID do grupo
             }
             return dados_sessao, None
         else:
-            return None, "Email ou senha incorretos."
+            return None, "A senha está incorreta."
             
     except Exception as e:
         print(f"Erro no login_usuario: {e}") 
@@ -44,24 +45,27 @@ def cadastrar_usuario(dados_formulario):
         
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
-        supabase.table("usuario").insert({
+        # ATUALIZADO: Inserindo id_grupo (Vamos assumir que 2 é o usuário padrão/cliente)
+        # Ajuste esse número se no seu banco de dados o grupo de cliente for outro!
+        insert_response = supabase.table("usuario").insert({
             "nome": nome, 
             "cpf": cpf_limpo, 
             "email": email, 
             "senha": senha_hash, 
-            "is_admin": False
+            "id_grupo": 2 
         }).execute()
-        result = supabase.table("usuario").select("id_usuario, nome, is_admin").eq("email", email).limit(1).execute()
-        if result.data:
-            usuario = result.data[0]
-            dados_sessao = {
-                'id_usuario': usuario['id_usuario'],
-                'nome_usuario': usuario['nome'],
-                'is_admin': usuario.get('is_admin', False)
-            }
-            return dados_sessao, None
-        else:
-            return None, "Erro ao buscar usuário recém-criado."
+
+        # Verifica se a inserção deu certo
+        if not insert_response.data:
+             return None, "Erro ao inserir no banco."
+
+        usuario_criado = insert_response.data[0]
+        dados_sessao = {
+            'id_usuario': usuario_criado['id_usuario'],
+            'nome_usuario': usuario_criado['nome'],
+            'id_grupo': usuario_criado.get('id_grupo')
+        }
+        return dados_sessao, None
 
     except Exception as e:
         print(f"Erro no cadastrar_usuario: {e}")

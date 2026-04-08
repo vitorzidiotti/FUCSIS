@@ -3,12 +3,15 @@ import datetime
 import bcrypt
 import re
 from flask import (
-    Flask, Blueprint, request, jsonify, redirect, 
-    url_for, session, render_template, flash, make_response
+    Flask, request, redirect, url_for, 
+    session, render_template, flash, make_response
 )
 from functools import wraps
 from supabase import create_client, Client
 from dotenv import load_dotenv
+
+# 1. IMPORTE O SEU BLUEPRINT DE AUTENTICAÇÃO
+from routes.auth_routes import auth_bp
 
 # --- CONFIGURAÇÃO INICIAL ---
 load_dotenv()
@@ -16,7 +19,6 @@ load_dotenv()
 # Configurações do Supabase
 url: str = os.getenv("SUPABASE_URL")
 key: str = os.getenv("SUPABASE_KEY")
-
 if not url or not key:
     raise ValueError("Erro: Variáveis SUPABASE_URL ou SUPABASE_KEY não encontradas no .env.")
 
@@ -25,6 +27,9 @@ supabase: Client = create_client(url, key)
 # Configuração da App Flask
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "uma-chave-secreta-padrao-muito-segura")
+
+# 2. REGISTRE O BLUEPRINT
+app.register_blueprint(auth_bp)
 
 # --- DECORATORS E FUNÇÕES HELPER ---
 
@@ -45,7 +50,7 @@ def login_required():
         def decorated_function(*args, **kwargs):
             if 'logged_in' not in session:
                 flash('Por favor, faça login para acessar esta página.', 'erro')
-                return redirect(url_for('login'))
+                return redirect(url_for('auth.login'))
             return f(*args, **kwargs)
         return decorated_function
     return wrapper
@@ -56,106 +61,29 @@ def admin_required():
         def decorated_function(*args, **kwargs):
             if 'logged_in' not in session:
                 flash('Por favor, faça login para acessar esta página.', 'erro')
-                return redirect(url_for('login'))
-            if not session.get('is_admin'):
+                return redirect(url_for('auth.login'))
+            
+            # ATUALIZADO: Usando id_grupo (Vamos assumir que 1 = Administrador)
+            if session.get('id_grupo') != 1:
                 flash('Você não tem permissão para acessar esta página.', 'erro')
                 return redirect(url_for('inicio'))
             return f(*args, **kwargs)
         return decorated_function
     return wrapper
 
-# --- ROTAS PÚBLICAS ---
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email_input = request.form.get('email')
-        senha_input = request.form.get('senha')
-        try:
-            result = supabase.table("usuario").select("id_usuario, nome, senha, is_admin").eq("email", email_input).limit(1).execute()
-            if result.data:
-                usuario = result.data[0]
-                stored_senha_hash = usuario['senha'].encode('utf-8')
-                if bcrypt.checkpw(senha_input.encode('utf-8'), stored_senha_hash):
-                    session['logged_in'] = True
-                    session['id_usuario'] = usuario['id_usuario']
-                    session['nome_usuario'] = usuario['nome']
-                    session['is_admin'] = usuario.get('is_admin', False)
-                    flash(f"Bem-vindo(a), {usuario['nome']}!", 'sucesso')
-                    return redirect(url_for('admin_dashboard')) if session['is_admin'] else redirect(url_for('inicio'))
-            flash('Email ou senha incorretos.', 'erro')
-        except Exception as e:
-            flash(f'Ocorreu um erro: {e}', 'erro')
-    return render_template('login.html')
-
-@app.route('/cadastro', methods=['GET', 'POST'])
-def cadastro():
-    if request.method == 'POST':
-        nome = request.form.get('nome')
-        cpf = request.form.get('cpf')
-        email = request.form.get('email')
-        senha = request.form.get('senha')
-
-        # Validação básica
-        if not nome or not cpf or not email or not senha:
-            flash("Preencha todos os campos.", "erro")
-            return render_template('cadastro.html')
-
-        try:
-            cpf_limpo = re.sub(r'\D', '', cpf)
-
-            # Verifica CPF OU EMAIL
-            existing_user = supabase.table("usuario")\
-                .select("id_usuario")\
-                .or_(f"cpf.eq.{cpf_limpo},email.eq.{email}")\
-                .execute()
-
-            if existing_user.data:
-                flash('CPF ou Email já cadastrados.', 'erro')
-                return render_template('cadastro.html')
-
-            # Hash da senha
-            senha_hash = bcrypt.hashpw(
-                senha.encode('utf-8'),
-                bcrypt.gensalt()
-            ).decode('utf-8')
-
-            # INSERT
-            response = supabase.table("usuario").insert({
-                "nome": nome,
-                "cpf": cpf_limpo,
-                "email": email,
-                "senha": senha_hash,
-                "is_admin": False
-            }).execute()
-
-            # 🔴 VALIDAÇÃO DO INSERT
-            if not response.data:
-                flash("Erro ao inserir no banco.", "erro")
-                return render_template('cadastro.html')
-
-            flash("Cadastro realizado com sucesso!", "sucesso")
-            return redirect(url_for('login'))
-
-        except Exception as e:
-            print("ERRO CADASTRO:", e)
-            flash(f"Erro ao cadastrar: {e}", "erro")
-
-    return render_template('cadastro.html')
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash('Você saiu da sua conta.', 'sucesso')
-    return redirect(url_for('login'))
+# --- ROTAS PRINCIPAIS ---
 
 @app.route('/')
 def home():
     if session.get('logged_in'):
-        return redirect(url_for('admin_dashboard')) if session.get('is_admin') else redirect(url_for('inicio'))
-    return redirect(url_for('login'))
+        # ATUALIZADO: Usando id_grupo
+        if session.get('id_grupo') == 1:
+            return redirect(url_for('admin')) 
+        else:
+            return redirect(url_for('inicio'))
+    return redirect(url_for('auth.login'))
 
-# --- ROTAS PRINCIPAIS (USUÁRIO COMUM) ---
 @app.route('/inicio')
 @login_required()
 def inicio():
@@ -172,33 +100,32 @@ def perfil():
         return redirect(url_for('inicio'))
 
     if request.method == 'POST':
-        # (A lógica completa de atualização de perfil pode ser expandida aqui)
         flash('Funcionalidade de atualização de perfil em desenvolvimento.', 'info')
         return redirect(url_for('perfil'))
         
-    return render_template('perfil.html', usuario=current_user_data)
+    return render_template('perfil.html', usuario=current_user_data) # Correção: adicionei o .html
 
 # --- ROTAS DE ADMINISTRAÇÃO ---
 @app.route('/admin')
 @admin_required()
-def admin_dashboard():
+def admin():
     return render_template('admin.html')
 
-# --- GERENCIAMENTO DE USUÁRIOS (ADMIN) ---
 @app.route('/admin/gerenciar-usuarios', methods=['GET'])
 @admin_required()
 @nocache
 def gerenciar_usuarios():
     termo_busca = request.args.get('busca', '').strip()
     try:
-        query = supabase.table("usuario").select("*").order("nome")
+        # Busca o relacionamento correto com 'nome'
+        query = supabase.table("usuario").select("*, grupo_de_usuario(nome)").order("nome")
         if termo_busca:
             query = query.ilike('nome', f'%{termo_busca}%')
         usuarios = query.execute().data
-        return render_template('gerenciar_usuarios.html', usuarios=usuarios, termo_busca=termo_busca)
+        return render_template('configuracoes/usuario/gerenciar_usuarios.html', usuarios=usuarios, termo_busca=termo_busca)
     except Exception as e:
         flash(f"Erro ao carregar usuários: {e}", "erro")
-        return render_template('gerenciar_usuarios.html', usuarios=[], termo_busca=termo_busca)
+        return render_template('configuracoes/usuario/gerenciar_usuarios.html', usuarios=[], termo_busca=termo_busca)
 
 @app.route('/admin/usuarios/adicionar', methods=['GET', 'POST'])
 @admin_required()
@@ -207,276 +134,149 @@ def adicionar_usuario():
         try:
             nome = request.form.get('nome')
             email = request.form.get('email')
-            cpf = request.form.get('cpf')
+            cpf_limpo = re.sub(r'\D', '', request.form.get('cpf'))
             senha = request.form.get('senha')
-            is_admin = True
-            
-            cpf_limpo = re.sub(r'\D', '', cpf)
-            existing = supabase.table("usuario").select("id_usuario").or_(f"cpf.eq.{cpf_limpo},email.eq.{email}").execute().data
-            if existing:
-                flash("Já existe um usuário com este CPF ou Email.", "erro")
-                return render_template('adicionar_usuario.html')
+            id_grupo = request.form.get('id_grupo')
 
             senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            supabase.table("usuario").insert({"nome": nome, "email": email, "cpf": cpf_limpo, "senha": senha_hash, "is_admin": is_admin}).execute()
-            flash("Usuário administrador adicionado com sucesso!", "sucesso")
-            return redirect(url_for('gerenciar_usuarios'))
+            
+            supabase.table("usuario").insert({
+                "nome": nome, "email": email, "cpf": cpf_limpo, "senha": senha_hash, "id_grupo": id_grupo
+            }).execute()
+            
+            flash("Usuário adicionado!", "sucesso")
+            return redirect(url_for('gerenciar_usuarios')) # NOME DA FUNÇÃO, NÃO O CAMINHO
         except Exception as e:
-            flash(f"Erro ao adicionar usuário: {e}", "erro")
-    return render_template('adicionar_usuario.html')
+            flash(f"Erro: {e}", "erro")
+            
+    grupos = supabase.table("grupo_de_usuario").select("*").execute().data
+    return render_template('configuracoes/usuario/adicionar_usuarios.html', grupos=grupos)
 
 @app.route('/admin/usuarios/editar/<int:id_usuario>', methods=['GET', 'POST'])
 @admin_required()
 def editar_usuario(id_usuario):
-    try:
-        usuario = supabase.table("usuario").select("*").eq("id_usuario", id_usuario).single().execute().data
-    except Exception as e:
-        flash(f"Erro ao carregar usuário: {e}", "erro")
-        return redirect(url_for('gerenciar_usuarios'))
-    
     if request.method == 'POST':
         try:
-            dados = {'nome': request.form.get('nome'), 'email': request.form.get('email'), 'is_admin': request.form.get('is_admin') == 'on'}
-            # (Lógica completa de validação de CPF/email e atualização de senha aqui)
+            dados = {
+                'nome': request.form.get('nome'), 
+                'email': request.form.get('email'), 
+                'id_grupo': request.form.get('id_grupo')
+            }
+            # Se digitou senha nova, atualiza
+            if request.form.get('senha'):
+                dados['senha'] = bcrypt.hashpw(request.form.get('senha').encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
             supabase.table("usuario").update(dados).eq("id_usuario", id_usuario).execute()
-            flash("Usuário atualizado com sucesso!", "sucesso")
+            flash("Usuário atualizado!", "sucesso")
             return redirect(url_for('gerenciar_usuarios'))
         except Exception as e:
-            flash(f"Erro ao atualizar usuário: {e}", "erro")
-    return render_template('editar_usuario.html', usuario=usuario)
+            flash(f"Erro ao atualizar: {e}", "erro")
+    
+    # GET: Busca usuário e também a lista de grupos para o select
+    usuario = supabase.table("usuario").select("*").eq("id_usuario", id_usuario).single().execute().data
+    grupos = supabase.table("grupo_de_usuario").select("*").execute().data
+    return render_template('configuracoes/usuario/editar_usuarios.html', usuario=usuario, grupos=grupos)
 
 @app.route('/admin/usuarios/excluir/<int:id_usuario>', methods=['POST'])
 @admin_required()
 def excluir_usuario(id_usuario):
     if id_usuario == session.get('id_usuario'):
-        flash("Você não pode excluir sua própria conta.", "erro")
-        return redirect(url_for('gerenciar_usuarios'))
-    try:
+        flash("Você não pode se excluir.", "erro")
+    else:
         supabase.table("usuario").delete().eq("id_usuario", id_usuario).execute()
-        flash("Usuário excluído com sucesso!", "sucesso")
-    except Exception as e:
-        flash(f"Erro ao excluir usuário: {e}", "erro")
+        flash("Usuário removido.", "sucesso")
     return redirect(url_for('gerenciar_usuarios'))
 
-# --- GERENCIAMENTO DE PRODUTOS (ADMIN) ---
-@app.route('/admin/gerenciar-produtos', methods=['GET'])
+
+# --- TELA DE CONFIGURAÇÕES (O MENU INTERMEDIÁRIO) ---
+@app.route('/admin/configuracoes')
+@admin_required()
+def configuracoes():
+    return render_template('configuracoes/configuracoes.html')
+
+# --- GERENCIAMENTO DE GRUPOS ---
+
+@app.route('/admin/gerenciar-grupos')
 @admin_required()
 @nocache
-def gerenciar_produtos():
-    termo_busca = request.args.get('q', '').strip()
+def gerenciar_grupos():
     try:
-        query = supabase.table("tb_produto").select("*").order("nome")
-        if termo_busca:
-            query = query.ilike('nome', f'%{termo_busca}%')
-        produtos = query.execute().data
-        return render_template('gerenciar_produtos.html', produtos=produtos, termo_busca=termo_busca)
+        # Busca todos os grupos ordenados por ID
+        grupos = supabase.table("grupo_de_usuario").select("*").order("id_grupo").execute().data
+        return render_template('configuracoes/grupo/gerenciar_grupos.html', grupos=grupos)
     except Exception as e:
-        flash(f"Erro ao carregar produtos: {e}", "erro")
-        return render_template('gerenciar_produtos.html', produtos=[], termo_busca=termo_busca)
+        flash(f"Erro ao carregar grupos: {e}", "erro")
+        return redirect(url_for('configuracoes'))
 
-@app.route('/admin/produtos/adicionar', methods=['GET', 'POST'])
+@app.route('/admin/grupos/adicionar', methods=['GET', 'POST'])
 @admin_required()
-def adicionar_produto():
+def adicionar_grupo():
     if request.method == 'POST':
+        nome = request.form.get('nome').strip()
         try:
-            dados = {
-                "nome": request.form.get('nome'), "marca": request.form.get('marca'),
-                "preco": float(request.form.get('preco', 0)), "estoque": 0,
-                "validade": request.form.get('validade') or None
-            }
-            supabase.table("tb_produto").insert(dados).execute()
-            flash("Produto adicionado com sucesso!", "sucesso")
-        except Exception as e:
-            flash(f"Erro ao adicionar produto: {e}", "erro")
-        return redirect(url_for('gerenciar_produtos'))
-    return render_template('adicionar_produto.html')
-
-@app.route('/admin/produtos/editar/<int:id_produto>', methods=['GET', 'POST'])
-@admin_required()
-def editar_produto(id_produto):
-    try:
-        produto = supabase.table("tb_produto").select("*").eq("id_produto", id_produto).single().execute().data
-    except Exception as e:
-        flash(f"Não foi possível carregar o produto: {e}", "erro")
-        return redirect(url_for('gerenciar_produtos'))
-    if request.method == 'POST':
-        try:
-            dados = {
-                "nome": request.form.get('nome'), "marca": request.form.get('marca'),
-                "preco": float(request.form.get('preco', 0)), "estoque": int(request.form.get('estoque', 0)),
-                "validade": request.form.get('validade') or None
-            }
-            supabase.table("tb_produto").update(dados).eq("id_produto", id_produto).execute()
-            flash("Produto atualizado com sucesso!", "sucesso")
-            return redirect(url_for('gerenciar_produtos'))
-        except Exception as e:
-            flash(f"Erro ao atualizar produto: {e}", "erro")
-    return render_template('editar_produto.html', produto=produto)
-
-@app.route('/admin/produtos/excluir/<int:id_produto>', methods=['POST'])
-@admin_required()
-def excluir_produto(id_produto):
-    try:
-        movimentos = supabase.table("tb_estoque_mov").select("id_mov", count='exact').eq("id_produto", id_produto).execute()
-        if movimentos.count > 0:
-            flash("Este produto não pode ser excluído, pois possui um histórico de movimentações.", "erro")
-            return redirect(url_for('gerenciar_produtos'))
-        
-        itens_venda = supabase.table("tb_venda_item").select("id_venda_item", count='exact').eq("id_produto", id_produto).execute()
-        if itens_venda.count > 0:
-            flash("Este produto não pode ser excluído, pois está associado a vendas.", "erro")
-            return redirect(url_for('gerenciar_produtos'))
-
-        supabase.table("tb_produto").delete().eq("id_produto", id_produto).execute()
-        flash("Produto excluído com sucesso!", "sucesso")
-    except Exception as e:
-        flash(f"Erro ao excluir produto: {e}", "erro")
-    return redirect(url_for('gerenciar_produtos'))
-
-# --- GERENCIAMENTO DE CLIENTES (ADMIN) ---
-@app.route('/admin/gerenciar-clientes', methods=['GET'])
-@admin_required()
-@nocache
-def gerenciar_clientes():
-    termo_busca = request.args.get('q', '').strip()
-    try:
-        query = supabase.table("tb_cliente").select("*").order("nome")
-        if termo_busca:
-            query = query.or_(f"nome.ilike.%{termo_busca}%,cpf.ilike.%{termo_busca}%")
-        clientes = query.execute().data
-        return render_template('gerenciar_clientes.html', clientes=clientes, termo_busca=termo_busca)
-    except Exception as e:
-        flash(f"Erro ao carregar clientes: {e}", "erro")
-        return render_template('gerenciar_clientes.html', clientes=[], termo_busca=termo_busca)
-
-@app.route('/admin/clientes/adicionar', methods=['GET', 'POST'])
-@admin_required()
-def adicionar_cliente():
-    if request.method == 'POST':
-        try:
-            nome = request.form.get('nome')
-            email = request.form.get('email')
-            cpf = re.sub(r'\D', '', request.form.get('cpf'))
-            existing = supabase.table("tb_cliente").select("id_cliente").eq("cpf", cpf).execute().data
-            if existing:
-                flash("Cliente já cadastrado com esse CPF.", "erro")
-                return redirect(url_for('adicionar_cliente'))
-            supabase.table("tb_cliente").insert({"nome": nome, "email": email, "cpf": cpf}).execute()
-            flash("Cliente adicionado com sucesso!", "sucesso")
-        except Exception as e:
-            flash(f"Erro ao adicionar cliente: {e}", "erro")
-        return redirect(url_for('gerenciar_clientes'))
-    return render_template('adicionar_cliente.html')
-
-@app.route('/admin/clientes/editar/<int:id_cliente>', methods=['GET', 'POST'])
-@admin_required()
-def editar_cliente(id_cliente):
-    try:
-        cliente = supabase.table("tb_cliente").select("*").eq("id_cliente", id_cliente).single().execute().data
-    except Exception as e:
-        flash(f"Erro ao carregar cliente: {e}", "erro")
-        return redirect(url_for('gerenciar_clientes'))
-    if request.method == 'POST':
-        try:
-            dados = {"nome": request.form.get('nome'), "email": request.form.get('email'), "cpf": re.sub(r'\D', '', request.form.get('cpf'))}
-            supabase.table("tb_cliente").update(dados).eq("id_cliente", id_cliente).execute()
-            flash("Cliente atualizado com sucesso!", "sucesso")
-        except Exception as e:
-            flash(f"Erro ao atualizar cliente: {e}", "erro")
-        return redirect(url_for('gerenciar_clientes'))
-    return render_template('editar_cliente.html', cliente=cliente)
-
-@app.route('/admin/clientes/excluir/<int:id_cliente>', methods=['POST'])
-@admin_required()
-def excluir_cliente(id_cliente):
-    try:
-        supabase.table("tb_cliente").delete().eq("id_cliente", id_cliente).execute()
-        flash("Cliente excluído com sucesso!", "sucesso")
-    except Exception as e:
-        flash(f"Erro ao excluir cliente: {e}", "erro")
-    return redirect(url_for('gerenciar_clientes'))
-
-# --- GERENCIAMENTO DE VENDAS (ADMIN) ---
-@app.route('/admin/gerenciar-vendas')
-@admin_required()
-@nocache
-def gerenciar_vendas():
-    try:
-        vendas_response = supabase.table("tb_venda").select("*, usuario(nome)").order("data_venda", desc=True).execute()
-        return render_template('gerenciar_vendas.html', vendas=vendas_response.data)
-    except Exception as e:
-        flash("Não foi possível carregar a lista de vendas.", "erro")
-        return render_template('gerenciar_vendas.html', vendas=[])
-    
-@app.route('/admin/vendas/adicionar', methods=['GET', 'POST'])
-@admin_required()
-def adicionar_venda():
-    if request.method == 'POST':
-        try:
-            produtos_selecionados = request.form.getlist('produtos[]')
-            quantidades = request.form.getlist('quantidades[]')
+            if not nome:
+                flash("O nome do grupo é obrigatório.", "erro")
+                return redirect(url_for('adicionar_grupo'))
             
-            for i, id_produto in enumerate(produtos_selecionados):
-                qtd = int(quantidades[i])
-                produto = supabase.table("tb_produto").select("nome, estoque").eq("id_produto", id_produto).single().execute().data
-                if produto['estoque'] < qtd:
-                    flash(f"Venda não realizada. Estoque de '{produto['nome']}' insuficiente.", "erro")
-                    return redirect(url_for('adicionar_venda'))
-            
-            # (Lógica completa para processar a venda)
-            flash("Venda registrada com sucesso!", "sucesso")
-            return redirect(url_for('gerenciar_vendas'))
+            supabase.table("grupo_de_usuario").insert({"nome": nome}).execute()
+            flash(f"Grupo '{nome}' criado com sucesso!", "sucesso")
+            return redirect(url_for('gerenciar_grupos'))
         except Exception as e:
-            flash(f"Ocorreu um erro ao registrar a venda: {e}", "erro")
-            return redirect(url_for('adicionar_venda'))
+            flash(f"Erro ao criar grupo: {e}", "erro")
+            
+    return render_template('configuracoes/grupo/adicionar_grupos.html')
 
-    try:
-        produtos = supabase.table("tb_produto").select("*").eq('ativo', True).order("nome").execute().data
-        return render_template('adicionar_venda.html', produtos=produtos)
-    except Exception as e:
-        flash(f"Não foi possível carregar os produtos: {e}", "erro")
-        return redirect(url_for('admin_dashboard'))
-
-# --- GERENCIAMENTO DE ESTOQUE (ADMIN) ---
-@app.route('/admin/estoque')
+@app.route('/admin/grupos/editar/<int:id_grupo>', methods=['GET', 'POST'])
 @admin_required()
-@nocache
-def estoque_mov():
+def editar_grupo(id_grupo):
     try:
-        movimentos = supabase.table("tb_estoque_mov").select("*, tb_produto(nome)").order("criado_em", desc=True).execute()
-        produtos = supabase.table("tb_produto").select("id_produto, nome").order("nome").execute()
-        return render_template('estoque.html', movimentos=movimentos.data, produtos=produtos.data)
+        # Busca o grupo específico
+        grupo = supabase.table("grupo_de_usuario").select("*").eq("id_grupo", id_grupo).single().execute().data
     except Exception as e:
-        flash(f"Não foi possível carregar o histórico de estoque: {e}", "erro")
-        return render_template('estoque.html', movimentos=[], produtos=[])
+        flash("Grupo não encontrado.", "erro")
+        return redirect(url_for('gerenciar_grupos'))
 
-@app.route('/admin/estoque/adicionar', methods=['POST'])
+    if request.method == 'POST':
+        novo_nome = request.form.get('nome').strip()
+        try:
+            supabase.table("grupo_de_usuario").update({"nome": novo_nome}).eq("id_grupo", id_grupo).execute()
+            flash("Grupo atualizado com sucesso!", "sucesso")
+            return redirect(url_for('gerenciar_grupos'))
+        except Exception as e:
+            flash(f"Erro ao atualizar: {e}", "erro")
+
+    return render_template('configuracoes/grupo/editar_grupos.html', grupo=grupo)
+
+@app.route('/admin/grupos/excluir/<int:id_grupo>', methods=['POST'])
 @admin_required()
-def adicionar_movimento():
-    try:
-        id_produto = request.form.get('id_produto')
-        tipo_mov = request.form.get('tipo_mov')
-        quantidade = int(request.form.get('quantidade'))
-        motivo = request.form.get('motivo')
+def excluir_grupo(id_grupo):
+    # Proteção: Não deixa excluir o grupo 1 (Administrador)
+    if id_grupo == 1:
+        flash("O grupo Administrador não pode ser excluído.", "erro")
+        return redirect(url_for('gerenciar_grupos'))
         
-        produto = supabase.table("tb_produto").select("id_produto, nome, estoque").eq("id_produto", id_produto).single().execute().data
-        if not produto:
-            flash("Produto não encontrado.", "erro")
-            return redirect(url_for('estoque_mov'))
+    try:
+        # Verifica se há usuários vinculados a este grupo antes de excluir
+        usuarios_no_grupo = supabase.table("usuario").select("id_usuario").eq("id_grupo", id_grupo).execute().data
+        if usuarios_no_grupo:
+            flash("Não é possível excluir: existem usuários vinculados a este grupo.", "erro")
+            return redirect(url_for('gerenciar_grupos'))
 
-        if tipo_mov == "SAIDA" and produto['estoque'] < quantidade:
-            flash(f"Estoque insuficiente para '{produto['nome']}'. Disponível: {produto['estoque']}", "erro")
-            return redirect(url_for('estoque_mov'))
-
-        novo_estoque = produto['estoque'] + quantidade if tipo_mov == "ENTRADA" else produto['estoque'] - quantidade
-        supabase.table("tb_produto").update({"estoque": novo_estoque}).eq("id_produto", id_produto).execute()
-        supabase.table("tb_estoque_mov").insert({"id_produto": id_produto, "tipo_mov": tipo_mov, "quantidade": quantidade, "motivo": motivo}).execute()
-        flash("Movimentação registrada com sucesso!", "sucesso")
+        supabase.table("grupo_de_usuario").delete().eq("id_grupo", id_grupo).execute()
+        flash("Grupo excluído com sucesso!", "sucesso")
     except Exception as e:
-        flash(f"Erro ao registrar movimentação: {e}", "erro")
-    return redirect(url_for('estoque_mov'))
+        flash(f"Erro ao excluir: {e}", "erro")
+        
+    return redirect(url_for('gerenciar_grupos'))
+
+# Rota temporária para o erro sumir
+@app.route('/admin/financeiro')
+@admin_required()
+def modulo_financeiro():
+    flash('Módulo Financeiro em desenvolvimento.', 'info')
+    return redirect(url_for('admin'))
 
 # --- EXECUÇÃO DO APP ---
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # usa PORT do Render, ou 5000 local
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)

@@ -6,11 +6,12 @@
     <title>{% block title %}Meu Sistema{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header class="header-nav">
-        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-yellow">‹</a>
-       <a href="{{ url_for('auth.logout') }}" class="btn btn-red">Sair</a>
+        <a href="javascript:history.back()" class="btn btn-yellow">‹ Voltar</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-red">Sair</a>
     </header>
 
     <main class="main-container">
@@ -21,6 +22,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Delegação de evento para formulários de exclusão
             document.body.addEventListener('submit', function(event) {
                 if (event.target.matches('.delete-form')) {
                     event.preventDefault();
@@ -32,7 +34,7 @@
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#dc3545',
-                        cancelButtonColor: '#ffc107',
+                        cancelButtonColor: '#6c757d',
                         confirmButtonText: 'Sim, excluir!',
                         cancelButtonText: 'Cancelar'
                     }).then((result) => {
@@ -54,15 +56,12 @@
                         position: 'top-end',
                         showConfirmButton: false,
                         timer: 4000,
-                        timerProgressBar: true,
-                        didOpen: (toast) => {
-                            toast.addEventListener('mouseenter', Swal.stopTimer);
-                            toast.addEventListener('mouseleave', Swal.resumeTimer);
-                        }
+                        timerProgressBar: true
                     });
 
                     {% for category, message in messages %}
                         Toast.fire({
+                            // Mapeia suas categorias do Python para os ícones do SweetAlert
                             icon: '{{ "success" if category == "sucesso" else "error" if category == "erro" else "info" }}',
                             title: '{{ message }}'
                         });

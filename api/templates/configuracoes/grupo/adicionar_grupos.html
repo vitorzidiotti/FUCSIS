@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Grupo{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>Criar Novo Grupo</h1>
+    <form method="POST" action="{{ url_for('adicionar_grupo') }}">
+        <div class="form-group">
+            <label for="nome">Nome do Grupo (ex: Vendedor):</label>
+            <input type="text" id="nome" name="nome" placeholder="Digite o nome do cargo" required autofocus>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-green">Salvar Grupo</button>
+            <a href="{{ url_for('gerenciar_grupos') }}" class="btn btn-grey">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Grupo{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>Editar Grupo</h1>
+    <form method="POST" action="{{ url_for('editar_grupo', id_grupo=grupo.id_grupo) }}">
+        <div class="form-group">
+            <label for="nome">Nome do Grupo:</label>
+            <input type="text" id="nome" name="nome" value="{{ grupo.nome }}" required autofocus>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-green">Salvar Alterações</button>
+            <a href="{{ url_for('gerenciar_grupos') }}" class="btn btn-red">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

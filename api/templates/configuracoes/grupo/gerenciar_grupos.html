@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Grupos{% endblock %}
+
+{% block content %}
+<div class="welcome-header">
+    <h1>Gerenciar Grupos de Usuários</h1>
+    <p>Defina os níveis de acesso e cargos do sistema.</p>
+</div>
+
+<div class="toolbar">
+    <div class="search-form">
+        </div>
+    <a href="{{ url_for('adicionar_grupo') }}" class="btn btn-green">+ Novo Grupo</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome do Grupo</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for grupo in grupos %}
+            <tr>
+                <td data-label="ID">{{ grupo.id_grupo }}</td>
+                <td data-label="Nome"><strong>{{ grupo.nome }}</strong></td>
+                <td data-label="Ações">
+                    <div class="action-buttons">
+                        <a href="{{ url_for('editar_grupo', id_grupo=grupo.id_grupo) }}" class="btn btn-yellow">Editar</a>
+                        
+                        {% if grupo.id_grupo != 1 %}
+                        <form class="delete-form" action="{{ url_for('excluir_grupo', id_grupo=grupo.id_grupo) }}" method="POST">
+                            <button type="submit" class="btn btn-red">Excluir</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

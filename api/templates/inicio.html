@@ -2,19 +2,19 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Início - Mercearia</title>
+  <title>Início - FUCSIS</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header class="header-nav">
     <a href="{{ url_for('perfil') }}" class="btn btn-green">Meu Perfil</a>
-    <a href="{{ url_for('logout') }}" class="btn btn-red">Sair</a>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-red">Sair</a>
     </header>
 
     <main class="main-container">
         <div class="welcome-header">
             <h1>Bem-vindo(a), {{ session.get('nome_usuario', 'Usuário') }}!</h1>
-            <p>Este é o seu painel de usuário.</p>
+            <p>O que você gostaria de fazer hoje?</p>
         </div>
     </main>
 </body>

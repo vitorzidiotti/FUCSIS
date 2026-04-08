@@ -6,7 +6,7 @@
 <div class="auth-container" style="margin-top: 2rem;">
     <h1>Meu Perfil</h1>
     
-    <form method="POST" action="{{ url_for('main.perfil') }}">
+    <form method="POST" action="{{ url_for('perfil') }}">
 
         <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" value="{{ usuario.nome or '' }}" readonly>
@@ -30,9 +30,9 @@
         </button>
 
         {% if session.get('is_admin') %}
-            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Voltar</a>
+            <a href="{{ url_for('admin') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Voltar</a>
         {% else %}
-            <a href="{{ url_for('main.inicio') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Voltar</a>
+            <a href="{{ url_for('inicio') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Voltar</a>
         {% endif %}
 
     </form>

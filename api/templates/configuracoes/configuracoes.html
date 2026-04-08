@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações - Sistema{% endblock %}
+
+{% block content %}
+<div class="welcome-header">
+    <h1>Configurações do Sistema</h1>
+    <p>O que você deseja gerenciar hoje, {{ session.get('nome_usuario', 'Admin') }}?</p>
+</div>
+
+<div class="action-grid">
+    
+    <a href="{{ url_for('gerenciar_usuarios') }}" class="action-card">
+        <h2>👤 Gerenciar Usuários</h2>
+        <p>Adicione, exclua, edite dados ou troque o grupo de permissão de quem acessa o sistema.</p>
+    </a>
+
+    <a href="{{ url_for('gerenciar_grupos') }}" class="action-card">
+        <h2>🛡️ Gerenciar Grupos</h2>
+        <p>Crie novos cargos, edite permissões e defina o que cada nível de usuário pode visualizar.</p>
+    </a>
+
+</div>
+{% endblock %}

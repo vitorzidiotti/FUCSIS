@@ -39,7 +39,7 @@ def adicionar_usuario():
         
         if sucesso:
             flash("Usuário administrador adicionado com sucesso!", "sucesso")
-            return redirect(url_for('usuario.gerenciar_usuarios'))
+            return redirect(url_for('gerenciar_usuarios'))
         else:
             flash(erro, "erro")
             
@@ -49,30 +49,19 @@ def adicionar_usuario():
 @admin_required()
 def editar_usuario(id_usuario):
     if request.method == 'POST':
-
-        # <<< INÍCIO DA CORREÇÃO >>>
-        # 1. Copia o formulário imutável para um dicionário mutável
         form_data = request.form.to_dict()
-        
-        # 2. Limpa o campo CPF (remove pontos e traço) se ele existir
         if 'cpf' in form_data:
             form_data['cpf'] = re.sub(r'\D', '', form_data['cpf'])
-        
-        # 3. Passa o dicionário 'form_data' (limpo) para o controller
         sucesso, erro = admin_usuario_controller.atualizar_usuario_admin(id_usuario, form_data)
-        # <<< FIM DA CORREÇÃO >>>
-        
         if sucesso:
             flash("Usuário atualizado com sucesso!", "sucesso")
-            return redirect(url_for('usuario.gerenciar_usuarios'))
+            return redirect(url_for('gerenciar_usuarios'))
         else:
             flash(erro, "erro")
-
-    # Lógica do GET (permanece igual)
     usuario, erro = admin_usuario_controller.get_usuario_por_id(id_usuario)
     if erro:
         flash(erro, "erro")
-        return redirect(url_for('usuario.gerenciar_usuarios'))
+        return redirect(url_for('gerenciar_usuarios'))
         
     return render_template('editar_usuario.html', usuario=usuario)
 
@@ -87,4 +76,4 @@ def excluir_usuario(id_usuario):
     else:
         flash(erro, "erro")
         
-    return redirect(url_for('usuario.gerenciar_usuarios'))
+    return redirect(url_for('gerenciar_usuarios'))

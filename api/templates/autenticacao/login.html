@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body class="auth-body">
+    <div class="auth-container">
+        <h1>Acesse sua Conta</h1>
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" name="email" id="email" value="{{ email_salvo | default('') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="senha">Senha:</label>
+                <div class="password-wrapper">
+                    <input type="password" name="senha" id="senha" required>
+                    <span class="toggle-password" id="togglePassword" title="Mostrar senha">👁️</span>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-green">Entrar</button>
+            </div>
+        </form>
+        <p class="auth-switch">Não tem uma conta? <a href="{{ url_for('auth.cadastro') }}">Cadastre-se</a></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                });
+
+                // Deixei na mesma linha para o formatador não quebrar
+                const flashMessages = {{ messages | tojson }};
+
+                flashMessages.forEach(function (msg) {
+                    const category = msg[0];
+                    const message = msg[1];
+                    const iconType = category === 'sucesso' ? 'success' : category === 'erro' ? 'error' : 'info';
+
+                    Toast.fire({
+                        icon: iconType,
+                        title: message
+                    });
+                });
+            });
+        </script>
+        {% endif %}
+    {% endwith %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePassword = document.querySelector('#togglePassword');
+            const passwordInput = document.querySelector('#senha');
+            
+            let isFixed = false; 
+
+            togglePassword.addEventListener('mouseenter', function () {
+                if (!isFixed) {
+                    passwordInput.setAttribute('type', 'text');
+                }
+            });
+
+            togglePassword.addEventListener('mouseleave', function () {
+                if (!isFixed) {
+                    passwordInput.setAttribute('type', 'password');
+                }
+            });
+
+            togglePassword.addEventListener('click', function () {
+                isFixed = !isFixed; 
+                
+                if (isFixed) {
+                    passwordInput.setAttribute('type', 'text');
+                    this.textContent = '🐵'; 
+                    this.title = "Ocultar senha";
+                } else {
+                    passwordInput.setAttribute('type', 'password');
+                    this.textContent = '🙈';
+                    this.title = "Mostrar senha";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

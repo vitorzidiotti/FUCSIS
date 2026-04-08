@@ -1,5 +1,14 @@
-# /api/database.py
+import os
 from supabase import create_client, Client
-from config import Config
+from dotenv import load_dotenv
 
-supabase: Client = create_client(Config.SUPABASE_URL, Config.SUPABASE_KEY)
+# Carrega as variáveis do arquivo .env
+load_dotenv()
+
+url: str = os.getenv("SUPABASE_URL")
+key: str = os.getenv("SUPABASE_KEY")
+
+if not url or not key:
+    raise ValueError("Erro: As variáveis SUPABASE_URL e SUPABASE_KEY não foram encontradas no .env.")
+
+supabase: Client = create_client(url, key)

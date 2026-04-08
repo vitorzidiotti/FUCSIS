@@ -12,15 +12,15 @@ main_bp = Blueprint(
 def home():
     if session.get('logged_in'):
         if session.get('is_admin'):
-            return redirect(url_for('main.admin_dashboard'))
+            return redirect(url_for('admin'))
         else:
-            return redirect(url_for('main.inicio'))
-    return redirect(url_for('auth.login'))
+            return redirect(url_for('inicio'))
+    return redirect(url_for('login'))
 
 @main_bp.route('/inicio')
 @login_required()
 def inicio():
-    return render_template('inicio.html')
+    return render_template('inicio')
 
 @main_bp.route('/perfil', methods=['GET', 'POST'])
 @login_required()
@@ -34,16 +34,16 @@ def perfil():
             session['nome_usuario'] = request.form.get('nome')
         else:
             flash(f'Erro ao atualizar perfil: {erro}', 'erro')
-        return redirect(url_for('main.perfil'))
+        return redirect(url_for('perfil'))
 
     usuario, erro = main_controller.get_dados_perfil(user_id)
     if erro:
         flash(erro, 'erro')
-        return redirect(url_for('main.inicio'))
+        return redirect(url_for('inicio'))
         
     return render_template('perfil.html', usuario=usuario)
 
 @main_bp.route('/admin')
 @admin_required()
 def admin_dashboard():
-    return render_template('admin.html')
+    return render_template('admin')

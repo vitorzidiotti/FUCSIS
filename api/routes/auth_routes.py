@@ -1,11 +1,8 @@
 # /api/routes/auth_routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from ..controllers import auth_controller
+from controllers import auth_controller # Lembre-se de manter o import corrigido!
 
-auth_bp = Blueprint(
-    'auth', __name__,
-    template_folder='../../templates/auth'
-)
+auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -17,21 +14,23 @@ def login():
         
         if erro:
             flash(erro, 'erro')
-            return render_template('login.html')
+            # 🔴 CORRIGIDO AQUI
+            return render_template('autenticacao/login.html') 
         
         session['logged_in'] = True
         session['id_usuario'] = dados_sessao['id_usuario']
         session['nome_usuario'] = dados_sessao['nome_usuario']
-        session['is_admin'] = dados_sessao['is_admin']
+        session['id_grupo'] = dados_sessao.get('id_grupo') # Atualizado para id_grupo
         
         flash(f"Bem-vindo(a), {dados_sessao['nome_usuario']}!", 'sucesso')
         
-        if dados_sessao['is_admin']:
-            return redirect(url_for('main.admin_dashboard'))
+        if session['id_grupo'] == 1:
+            return redirect(url_for('admin'))
         else:
-            return redirect(url_for('main.inicio'))
+            return redirect(url_for('inicio'))
             
-    return render_template('login.html')
+    # 🔴 CORRIGIDO AQUI
+    return render_template('autenticacao/login.html') 
 
 @auth_bp.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
@@ -40,17 +39,15 @@ def cadastro():
         
         if erro:
             flash(erro, 'erro')
-            return render_template('cadastro.html')
+            # 🔴 CORRIGIDO AQUI
+            return render_template('autenticacao/cadastro.html') 
         
-        session['logged_in'] = True
-        session['id_usuario'] = dados_sessao['id_usuario']
-        session['nome_usuario'] = dados_sessao['nome_usuario']
-        session['is_admin'] = dados_sessao['is_admin']
-        
-        flash(f"Bem-vindo(a), {dados_sessao['nome_usuario']}! Cadastro realizado.", 'sucesso')
-        return redirect(url_for('main.inicio'))
+        # Se deu tudo certo no cadastro, você pode decidir se loga ele direto ou manda pro login
+        flash("Cadastro realizado com sucesso! Faça login.", 'sucesso')
+        return redirect(url_for('auth.login'))
 
-    return render_template('cadastro.html')
+    # 🔴 CORRIGIDO AQUI
+    return render_template('autenticacao/cadastro.html') 
 
 @auth_bp.route('/logout')
 def logout():
