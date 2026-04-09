@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Lançamento - FUCSIS{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="margin-top: 2rem; max-width: 500px;">
+    <h1>Novo Lançamento Manual</h1>
+    <p>Registre despesas que não possuem contratos recorrentes vinculados.</p>
+    
+    <form method="POST" action="{{ url_for('adicionar_fluxo') }}">
+        <div class="form-group">
+            <label for="descricao">Descrição da Despesa:</label>
+            <input type="text" id="descricao" name="descricao" required placeholder="Ex: Manutenção de Nobreak">
+        </div>
+
+        <div class="form-group">
+            <label for="valor">Valor (R$):</label>
+            <input type="number" id="valor" name="valor" step="0.01" required placeholder="0.00">
+        </div>
+
+        <div class="form-group">
+            <label for="data_vencimento">Data de Vencimento:</label>
+            <input type="date" id="data_vencimento" name="data_vencimento" required>
+        </div>
+
+        <div class="form-group">
+            <label for="status_pagamento">Status:</label>
+            <select id="status_pagamento" name="status_pagamento">
+                <option value="Pendente" selected>Pendente</option>
+                <option value="Pago">Pago</option>
+            </select>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-green" style="padding: 14px;">Confirmar Lançamento</button>
+            <a href="{{ back_url }}" class="btn btn-yellow" style="padding: 14px;">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

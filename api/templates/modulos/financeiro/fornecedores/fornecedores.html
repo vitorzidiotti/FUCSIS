@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Fornecedores - FUCSIS{% endblock %}
+
+{% block content %}
+<div class="welcome-header">
+    <h1>Gerenciar Fornecedores</h1>
+    <p>Empresas parceiras e prestadoras de serviço de TI.</p>
+</div>
+
+<div class="toolbar">
+    <div class="search-form"></div>
+    <a href="{{ url_for('adicionar_fornecedor') }}" class="btn btn-green">+ Novo Fornecedor</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Nome Fantasia</th>
+                <th>CNPJ</th>
+                <th>Contato</th>
+                <th>E-mail</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in fornecedores %}
+            <tr>
+                <td><strong>{{ f.nome_fantasia }}</strong></td>
+                <td>{{ f.cnpj }}</td>
+                <td> {{ f.contato_nome or '---' }} </td>
+                <td>{{ f.contato_email or '' }}</td>
+                <td class="text-center">
+                    <div class="action-buttons" style="display: flex; gap: 8px; justify-content: center;">
+                        <a href="{{ url_for('editar_fornecedor', id_fornecedor=f.id_fornecedor) }}" class="btn btn-yellow">Editar</a>
+                        
+                        <form action="{{ url_for('excluir_fornecedor', id_fornecedor=f.id_fornecedor) }}" method="POST" class="delete-form">
+                            <button type="submit" class="btn btn-red">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center">Nenhum fornecedor cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

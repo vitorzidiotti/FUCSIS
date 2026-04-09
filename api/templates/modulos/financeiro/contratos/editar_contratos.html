@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Contrato - FUCSIS{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="margin-top: 2rem; max-width: 600px;">
+    <h1>Editar Contrato</h1>
+    <form method="POST" action="{{ url_for('editar_contrato', id_contrato=contrato.id_contrato) }}">
+        <div class="form-group">
+            <label>Título do Contrato:</label>
+            <input type="text" name="titulo_contrato" value="{{ contrato.titulo_contrato }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Status:</label>
+            <select name="status">
+                <option value="Ativo" {% if contrato.status == 'Ativo' %}selected{% endif %}>Ativo</option>
+                <option value="Encerrado" {% if contrato.status == 'Encerrado' %}selected{% endif %}>Encerrado</option>
+                <option value="Suspenso" {% if contrato.status == 'Suspenso' %}selected{% endif %}>Suspenso</option>
+            </select>
+        </div>
+
+        <div class="form-group-row" style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Valor Total:</label>
+                <input type="number" name="valor_total" step="0.01" value="{{ contrato.valor_total }}" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Dia Vencimento:</label>
+                <input type="number" name="dia_vencimento" value="{{ contrato.dia_vencimento }}" required>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-green">Atualizar Contrato</button>
+            <a href="{{ url_for('gerenciar_contratos') }}" class="btn btn-yellow">Cancelar</a>
+        </div>
+    </form>
+    <p style="margin-top: 1rem; font-size: 0.8rem; color: #666;">
+        * Nota: A alteração de valores aqui não altera as parcelas já geradas no fluxo financeiro.
+    </p>
+</div>
+{% endblock %}

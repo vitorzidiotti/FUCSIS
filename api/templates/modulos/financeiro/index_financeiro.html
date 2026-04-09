@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Módulo Financeiro - FUCSIS{% endblock %}
+
+{% block content %}
+<div class="welcome-header">
+    <h1>Módulo Financeiro</h1>
+    <p>Selecione a área que deseja gerenciar.</p>
+</div>
+
+<div class="action-grid">
+    <a href="{{ url_for('gerenciar_contratos') }}" class="action-card">
+        <h2>📑 Gerenciar Contratos</h2>
+        <p>Cadastre novos contratos, anexe PDFs e defina prazos de validade.</p>
+    </a>
+
+    <a href="{{ url_for('gerenciar_fornecedores') }}" class="action-card">
+        <h2>🏭 Gerenciar Fornecedores</h2>
+        <p>Mantenha atualizado o cadastro das empresas e contatos de faturamento.</p>
+    </a>
+
+    <a href="{{ url_for('gerenciar_fluxos') }}" class="action-card">
+        <h2>📉 Fluxo Financeiro</h2>
+        <p>Visualize e controle os pagamentos, vencimentos e o que já foi enviado para o financeiro.</p>
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Contrato - FUCSIS{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="margin-top: 2rem; max-width: 600px;">
+    <h1>Novo Contrato de TI</h1>
+    <p>Cadastre os detalhes do contrato para gerar as parcelas mensais.</p>
+    
+   <form method="POST" action="{{ url_for('adicionar_contrato') }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="id_fornecedor">Fornecedor:</label>
+            <select name="id_fornecedor" id="id_fornecedor" required>
+                <option value="" disabled selected>Selecione a empresa...</option>
+                {% for f in fornecedores %}
+                    <option value="{{ f.id_fornecedor }}">{{ f.nome_fantasia }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="titulo_contrato">Título / Descrição:</label>
+            <input type="text" id="titulo_contrato" name="titulo_contrato" required placeholder="Ex: Licença Adobe Cloud">
+        </div>
+
+        <div class="form-group-row" style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label for="valor_total">Valor Total:</label>
+                <input type="number" id="valor_total" name="valor_total" step="0.01" required placeholder="0.00">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label for="dia_vencimento">Dia Vencimento:</label>
+                <input type="number" id="dia_vencimento" name="dia_vencimento" min="1" max="31" required placeholder="10">
+            </div>
+        </div>
+
+        <div class="form-group-row" style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label for="data_inicio">Início:</label>
+                <input type="date" id="data_inicio" name="data_inicio" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label for="data_fim">Término:</label>
+                <input type="date" id="data_fim" name="data_fim" required>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-green" style="width: 100%; padding: 14px;">Gerar Contrato e Parcelas</button>
+            <a href="{{ url_for('gerenciar_contratos') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Cancelar</a>
+        </div>
+        <div class="form-group">
+        <label>Anexar Contrato (PDF):</label>
+        <input type="file" name="arquivo_pdf" accept="application/pdf">
+    </div>
+    </form>
+</div>
+{% endblock %}

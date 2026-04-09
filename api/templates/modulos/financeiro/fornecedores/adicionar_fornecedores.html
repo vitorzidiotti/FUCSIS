@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Fornecedor - FUCSIS{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="margin-top: 2rem; max-width: 500px;">
+    <h1>Cadastrar Fornecedor</h1>
+    <p>Preencha os dados da empresa para vincular contratos.</p>
+    
+    <form method="POST" action="{{ url_for('adicionar_fornecedor') }}">
+        <div class="form-group">
+            <label for="nome_fantasia">Nome Fantasia:</label>
+            <input type="text" id="nome_fantasia" name="nome_fantasia" required placeholder="Ex: Microsoft Brasil">
+        </div>
+
+        <div class="form-group">
+            <label for="cnpj">CNPJ:</label>
+            <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00">
+        </div>
+
+        <div class="form-group">
+            <label for="contato_nome">Pessoa de Contato:</label>
+            <input type="text" id="contato_nome" name="contato_nome" placeholder="Nome do gerente de conta">
+        </div>
+
+        <div class="form-group">
+            <label for="contato_email">E-mail de Contato:</label>
+            <input type="email" id="contato_email" name="contato_email" placeholder="financeiro@fornecedor.com">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-green" style="padding: 14px;">Salvar Fornecedor</button>
+            <a href="{{ url_for('gerenciar_fornecedores') }}" class="btn btn-yellow" style="padding: 14px;">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

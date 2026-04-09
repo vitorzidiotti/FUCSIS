@@ -59,7 +59,8 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: white; /* Texto branco por padrão */
+  color: white;
+  /* Texto branco por padrão */
   transition: transform 0.2s, box-shadow 0.2s;
   white-space: nowrap;
   box-sizing: border-box;
@@ -74,6 +75,7 @@ a {
 .btn-green {
   background-color: #28a745;
 }
+
 .btn-green:hover {
   background-color: #218838;
 }
@@ -81,8 +83,10 @@ a {
 /* --- CORREÇÃO AQUI --- */
 .btn-yellow {
   background-color: #ffc107;
-  color: #000000; /* Forçado para preto puro */
+  color: #000000;
+  /* Forçado para preto puro */
 }
+
 .btn-yellow:hover {
   background-color: #e0a800;
 }
@@ -90,6 +94,7 @@ a {
 .btn-red {
   background-color: #dc3545;
 }
+
 .btn-red:hover {
   background-color: #c82333;
 }
@@ -97,17 +102,19 @@ a {
 .btn-blue {
   background-color: #007bff;
 }
+
 .btn-blue:hover {
   background-color: #0069d9;
 }
 
 .btn-grey {
-    background-color: #6c757d;
-    color: white;
-    border: none;
+  background-color: #6c757d;
+  color: white;
+  border: none;
 }
+
 .btn-grey:hover {
-    background-color: #5a6268;
+  background-color: #5a6268;
 }
 
 
@@ -236,17 +243,60 @@ textarea:focus {
    6. TABELAS
    ========================================================================== */
 .table-container {
-  background-color: #fff;
+  background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  margin-top: 1rem;
   overflow-x: auto;
-  padding: 1rem;
+  /* Garante que não quebre no celular */
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   min-width: 700px;
+}
+
+/* Cabeçalho da Tabela */
+table thead th {
+  text-align: left;
+  padding: 12px 15px;
+  border-bottom: 2px solid #eee;
+  color: #888;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Linhas da Tabela */
+table tbody td {
+  padding: 15px;
+  /* Espaçamento interno fixo */
+  border-bottom: 1px solid #f9f9f9;
+  vertical-align: middle;
+  /* Alinha o texto no meio verticalmente */
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* Efeito ao passar o mouse na linha */
+table tbody tr:hover {
+  background-color: #fcfcfc;
+}
+
+/* Ajuste nos botões de ação dentro da tabela */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: 0.2s;
 }
 
 th,
@@ -337,11 +387,13 @@ tr:last-child td {
   .search-form {
     display: block;
   }
+
   .search-form input {
     border-radius: 8px;
     border-right: 1px solid #ced4da;
     margin-bottom: 0.5rem;
   }
+
   .search-form button {
     border-radius: 8px;
     width: 100%;
@@ -350,9 +402,11 @@ tr:last-child td {
   .table-container {
     padding: 0.5rem;
   }
+
   .table-container thead {
     display: none;
   }
+
   .table-container tr {
     display: block;
     margin-bottom: 1rem;
@@ -361,6 +415,7 @@ tr:last-child td {
     padding: 1rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
+
   .table-container td {
     display: block;
     text-align: right;
@@ -368,9 +423,11 @@ tr:last-child td {
     border-bottom: 1px dotted #ccc;
     font-size: 0.95rem;
   }
+
   .table-container td:last-child {
     border-bottom: none;
   }
+
   .table-container td::before {
     content: attr(data-label);
     float: left;
@@ -380,10 +437,12 @@ tr:last-child td {
     color: #495057;
     margin-right: 1rem;
   }
+
   .action-buttons {
     justify-content: flex-end;
     margin-top: 0.5rem;
   }
+
   .action-buttons .btn {
     white-space: nowrap;
   }
@@ -432,6 +491,7 @@ tr:last-child td {
     opacity: 1;
     transform: translateX(0);
   }
+
   to {
     opacity: 0;
     transform: translateX(-30px);
@@ -474,6 +534,7 @@ body.swal2-toast-shown .swal2-container {
   align-items: center;
   padding-top: 50px;
 }
+
 .modal-content {
   background-color: #fefefe;
   margin: auto;
@@ -486,6 +547,7 @@ body.swal2-toast-shown .swal2-container {
     0 6px 20px 0 rgba(0, 0, 0, 0.19);
   position: relative;
 }
+
 .close-button {
   color: #ffffff;
   float: right;
@@ -493,6 +555,7 @@ body.swal2-toast-shown .swal2-container {
   font-weight: bold;
   cursor: pointer;
 }
+
 .close-button:hover,
 .close-button:focus {
   color: black;
@@ -504,6 +567,7 @@ body.swal2-toast-shown .swal2-container {
   padding: 15px 0;
   border-bottom: 1px dashed #eee;
 }
+
 .product-adjustment-item:last-child {
   border-bottom: none;
 }
@@ -513,6 +577,7 @@ body.swal2-toast-shown .swal2-container {
   display: block;
   margin-bottom: 12px;
 }
+
 .product-adjustment-item strong small {
   font-weight: normal;
   font-size: 0.9em;
@@ -546,11 +611,13 @@ body.swal2-toast-shown .swal2-container {
   flex-direction: column;
   gap: 5px;
 }
+
 .reason-group label {
   font-weight: bold;
   font-size: 0.9em;
   color: #333;
 }
+
 .reason-group input[type="text"] {
   width: 100%;
   padding: 8px;
@@ -600,16 +667,16 @@ body.swal2-toast-shown .swal2-container {
 .modal-actions {
   margin-top: 20px;
   display: flex;
-  justify-content: flex-end; 
-  gap: 10px; 
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .modal-actions .btn {
-  width: auto; 
-  min-width: 120px; 
-  padding: 0.8rem 1.2rem; 
-  font-size: 1rem; 
-  font-weight: 700; 
+  width: auto;
+  min-width: 120px;
+  padding: 0.8rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 /* ==========================================================================
@@ -663,9 +730,11 @@ body.swal2-toast-shown .swal2-container {
   margin-top: 8px;
   font-size: 0.9em;
 }
+
 .cpf-error {
   color: #dc3545;
 }
+
 .cpf-loading {
   color: #007bff;
 }
@@ -682,14 +751,16 @@ body.swal2-toast-shown .swal2-container {
 .password-wrapper input[type="password"],
 .password-wrapper input[type="text"] {
   width: 100%;
-  padding-right: 40px; /* Dá um espaço para o texto não ficar embaixo do olho */
+  padding-right: 40px;
+  /* Dá um espaço para o texto não ficar embaixo do olho */
 }
 
 .toggle-password {
   position: absolute;
   right: 12px;
   cursor: pointer;
-  user-select: none; /* Evita que o usuário selecione o emoji do olho sem querer */
+  user-select: none;
+  /* Evita que o usuário selecione o emoji do olho sem querer */
   font-size: 1.2rem;
   opacity: 0.7;
   transition: opacity 0.2s;

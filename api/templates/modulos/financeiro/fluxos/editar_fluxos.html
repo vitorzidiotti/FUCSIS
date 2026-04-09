@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Lançamento - FUCSIS{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="margin-top: 2rem; max-width: 500px;">
+    <h1>Editar Lançamento</h1>
+    <p>Atualize as informações da parcela ou do lançamento manual.</p>
+    
+    <form method="POST" action="{{ url_for('editar_fluxo', id_parcela=parcela.id_parcela) }}">
+        <div class="form-group">
+            <label for="descricao">Descrição:</label>
+            <input type="text" id="descricao" name="descricao" value="{{ parcela.descricao }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="valor">Valor Esperado (R$):</label>
+            <input type="number" id="valor" name="valor" step="0.01" value="{{ parcela.valor_esperado }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="data_vencimento">Data de Vencimento:</label>
+            <input type="date" id="data_vencimento" name="data_vencimento" value="{{ parcela.data_vencimento }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="status_pagamento">Status do Pagamento:</label>
+            <select id="status_pagamento" name="status_pagamento" required>
+                <option value="Pendente" {% if parcela.status_pagamento == 'Pendente' %}selected{% endif %}>Pendente</option>
+                <option value="Pago" {% if parcela.status_pagamento == 'Pago' %}selected{% endif %}>Pago</option>
+            </select>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-green" style="padding: 14px;">Salvar Alterações</button>
+            <a href="{{ back_url }}" class="btn btn-yellow" style="padding: 14px;">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

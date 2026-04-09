@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Fluxo Financeiro - FUCSIS{% endblock %}
+
+{% block content %}
+<div class="welcome-header">
+    <h1>Fluxo Financeiro</h1>
+    <p>Controle de parcelas de contratos e lançamentos manuais.</p>
+</div>
+
+<div class="stats-container" style="display: flex; gap: 20px; margin-bottom: 2rem;">
+    <div class="stat-card" style="flex: 1; background: white; padding: 20px; border-radius: 12px; border-left: 5px solid #dc3545; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <small style="color: #888; text-transform: uppercase; font-weight: 600;">Total Pendente</small>
+        <h2 style="color: #dc3545; margin-top: 5px;">R$ {{ "{:,.2f}".format(total_pendente).replace(',', 'v').replace('.', ',').replace('v', '.') }}</h2>
+    </div>
+    <div class="stat-card" style="flex: 1; background: white; padding: 20px; border-radius: 12px; border-left: 5px solid #28a745; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <small style="color: #888; text-transform: uppercase; font-weight: 600;">Total Pago</small>
+        <h2 style="color: #28a745; margin-top: 5px;">R$ {{ "{:,.2f}".format(total_pago).replace(',', 'v').replace('.', ',').replace('v', '.') }}</h2>
+    </div>
+</div>
+
+<div class="toolbar">
+    <div class="search-form"></div>
+    <a href="{{ url_for('adicionar_fluxo') }}" class="btn btn-green">+ Lançamento Avulso</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Vencimento</th>
+                <th>Descrição / Contrato</th>
+                <th>Fornecedor</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in parcelas %}
+            <tr>
+                <td>
+                    <span style="font-weight: 600; color: {{ '#dc3545' if datetime.strptime(p.data_vencimento, '%Y-%m-%d').date() < hoje and p.status_pagamento == 'Pendente' else '#333' }}">
+                        {{ datetime.strptime(p.data_vencimento, '%Y-%m-%d').strftime('%d/%m/%Y') }}
+                    </span>
+                </td>
+                <td>
+                    <strong>{{ p.descricao }}</strong><br>
+                    <small style="color: #888;">{{ p.contrato.titulo_contrato if p.contrato else 'Lançamento Manual' }}</small>
+                </td>
+                <td>{{ p.contrato.fornecedor.nome_fantasia if p.contrato else '---' }}</td>
+                <td>R$ {{ "{:,.2f}".format(p.valor_esperado).replace(',', 'v').replace('.', ',').replace('v', '.') }}</td>
+                <td>
+                    <span class="badge {{ 'btn-green' if p.status_pagamento == 'Pago' else 'btn-yellow' }}" style="padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;">
+                        {{ p.status_pagamento }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <div class="action-buttons" style="display: flex; gap: 8px; justify-content: center;">
+                        <a href="{{ url_for('editar_fluxo', id_parcela=p.id_parcela) }}" class="btn btn-yellow">Editar</a>
+                        
+                        <form action="{{ url_for('excluir_fluxo', id_parcela=p.id_parcela) }}" method="POST" class="delete-form">
+                            <button type="submit" class="btn btn-red">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center">Nenhum lançamento encontrado para o período.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
