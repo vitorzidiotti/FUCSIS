@@ -10,11 +10,27 @@
     </div>
 
     <div class="toolbar">
-        <form class="search-form" method="GET" action="{{ url_for('gerenciar_usuarios') }}">
-            <input type="text" name="busca" placeholder="Buscar por nome..." value="{{ termo_busca or '' }}">
-            <button type="submit" class="btn btn-blue">Pesquisar</button>
+        <form method="GET" action="{{ url_for('gerenciar_usuarios') }}" class="search-form" style="display: flex; gap: 8px; align-items: center;">
+            
+            <select name="tipo_filtro" id="tipo_filtro" class="form-control" style="width: auto; height: 38px; padding: 0 10px; border-radius: 5px; border: 1px solid #ccc;">
+                <option value="nome" {% if tipo_filtro == 'nome' %}selected{% endif %}>Nome</option>
+                <option value="cpf" {% if tipo_filtro == 'cpf' %}selected{% endif %}>CPF</option>
+                <option value="email" {% if tipo_filtro == 'email' %}selected{% endif %}>E-mail</option>
+                <option value="grupo" {% if tipo_filtro == 'grupo' %}selected{% endif %}>Grupo</option>
+            </select>
+
+            <input type="text" name="busca" id="busca_input" placeholder="Pesquisar..." value="{{ termo_busca }}" style="height: 38px; margin-bottom: 0;">
+            
+            <button type="submit" class="btn btn-blue" style="height: 38px; display: flex; align-items: center; justify-content: center;">
+                Pesquisar
+            </button>
+
+            {% if termo_busca %}
+                <a href="{{ url_for('gerenciar_usuarios') }}" class="btn btn-yellow" style="height: 38px; display: flex; align-items: center; text-decoration: none;">Limpar</a>
+            {% endif %}
         </form>
-        <a href="{{ url_for('adicionar_usuario') }}" class="btn btn-green">+ Adicionar Usuário</a>
+        
+        <a href="{{ url_for('adicionar_usuario') }}" class="btn btn-green">+ Novo Usuário</a>
     </div>
 
     <div class="table-container">
@@ -34,7 +50,7 @@
                 <tr>
                     <td data-label="Nome">{{ usuario.nome }}</td>
                     <td data-label="Email">{{ usuario.email }}</td>
-                    <td data-label="CPF" class="cpf-column">{{ usuario.cpf }}</td>
+                    <td data-label="CPF" class="cpf-cell">{{ usuario.cpf }}</td>
 
                     <td data-label="Grupo">
                         <span class="btn {{ 'btn-blue' if usuario.id_grupo == 1 else 'btn-grey' }}"
@@ -48,9 +64,8 @@
                             <a href="{{ url_for('editar_usuario', id_usuario=usuario.id_usuario) }}"
                                 class="btn btn-yellow">Editar</a>
                             <form class="delete-form"
-                                action="{{ url_for('excluir_usuario', id_usuario=usuario.id_usuario) }}" method="POST"
-                                onsubmit="return confirm('Tem certeza que deseja excluir este usuário?');">
-                                <button type="submit" class="btn btn-red">Excluir</button>
+                                action="{{ url_for('excluir_usuario', id_usuario=usuario.id_usuario) }}" method="POST">
+                                <button type="submit" class="btn btn-red" onclick="return confirm('Tem certeza que deseja excluir este usuário?');">Excluir</button>
                             </form>
                         </div>
                     </td>
@@ -65,4 +80,46 @@
         </table>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoFiltro = document.getElementById('tipo_filtro');
+    const buscaInput = document.getElementById('busca_input');
+
+    // Função para aplicar máscara de CPF
+    function formatarCPF(v) {
+        v = v.replace(/\D/g, ""); // Remove tudo o que não é dígito
+        if (v.length > 11) v = v.slice(0, 11);
+        v = v.replace(/(\d{3})(\d)/, "$1.$2"); // Coloca ponto entre o terceiro e o quarto dígitos
+        v = v.replace(/(\d{3})(\d)/, "$1.$2"); // Coloca ponto entre o sexto e o sétimo dígitos
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2"); // Coloca hífen entre o nono e o décimo dígitos
+        return v;
+    }
+
+    // Aplica máscara no campo de busca enquanto digita (se CPF estiver selecionado)
+    buscaInput.addEventListener('input', function(e) {
+        if (tipoFiltro.value === 'cpf') {
+            e.target.value = formatarCPF(e.target.value);
+        }
+    });
+
+    // Limpa ou formata o campo se o usuário mudar o seletor
+    tipoFiltro.addEventListener('change', function() {
+        if (this.value === 'cpf') {
+            buscaInput.value = formatarCPF(buscaInput.value);
+            buscaInput.placeholder = "000.000.000-00";
+        } else {
+            buscaInput.placeholder = "Pesquisar...";
+        }
+    });
+
+    // Formata os CPFs da tabela ao carregar a página
+    document.querySelectorAll('.cpf-cell').forEach(function(cell) {
+        const original = cell.textContent.trim();
+        if (original.length === 11 && !original.includes('.')) {
+            cell.textContent = formatarCPF(original);
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -5,12 +5,11 @@
 {% block content %}
 <div class="welcome-header">
     <h1>Gerenciar Contratos</h1>
-    <p>Visualize e controle os prazos e valores dos contratos.</p>
+    <p>Visualize e controle os prazos, valores e a saúde dos seus contratos.</p>
 </div>
 
 <div class="toolbar">
-    <div class="search-form">
-    </div>
+    <div class="search-form"></div>
     <a href="{{ url_for('adicionar_contrato') }}" class="btn btn-green">Novo Contrato</a>
 </div>
 
@@ -23,7 +22,7 @@
                 <th>Valor Total</th>
                 <th>Vencimento</th>
                 <th>Status</th>
-                <th class="text-center">Ações</th>
+                <th class="text-center">Parcelas</th> <th class="text-center">Ações</th>
             </tr>
         </thead>
         <tbody>
@@ -31,30 +30,35 @@
             <tr>
                 <td data-label="Contrato"><strong>{{ contrato.titulo_contrato }}</strong></td>
                 <td data-label="Fornecedor">{{ contrato.fornecedor.nome_fantasia }}</td>
-                <td data-label="Valor">R$ {{ "{:,.2f}".format(contrato.valor_total).replace(',', 'v').replace('.',
-                    ',').replace('v', '.') }}</td>
+                <td data-label="Valor">R$ {{ "{:,.2f}".format(contrato.valor_total).replace(',', 'v').replace('.', ',').replace('v', '.') }}</td>
                 <td data-label="Vencimento">
-                    <span class="{% if contrato.data_fim < hoje|string %}text-red{% endif %}">
-                        {{ datetime.strptime(contrato.data_fim, '%Y-%m-%d').strftime('%d/%m/%Y') }}
+                    <span class="{% if contrato.data_fim and contrato.data_fim < hoje|string and contrato.status == 'Ativo' %}text-red{% endif %}">
+                        {{ datetime.strptime(contrato.data_fim, '%Y-%m-%d').strftime('%d/%m/%Y') if contrato.data_fim else '---' }}
                     </span>
                 </td>
                 <td data-label="Status">
-                    <span class="btn {{ 'btn-blue' if contrato.status == 'Ativo' else 'btn-grey' }}"
-                        style="padding: 2px 10px; font-size: 0.8rem;">
+                    {% set status_class = 'btn-blue' if contrato.status == 'Ativo' else 'btn-red' if contrato.status == 'Suspenso' else 'btn-grey' %}
+                    <span class="btn {{ status_class }}" style="padding: 2px 10px; font-size: 0.8rem; cursor: default;">
                         {{ contrato.status }}
                     </span>
                 </td>
+
+                <td data-label="Parcelas" class="text-center">
+                    <span class="badge btn-grey" style="font-weight: bold;">
+                        {{ contrato.parcelas_pagas or 0 }} / {{ contrato.total_parcelas or 0 }}
+                    </span>
+                </td>
+
                 <td class="text-center">
                     <div class="action-buttons" style="display: flex; gap: 5px; justify-content: center;">
-                        <a href="{{ url_for('editar_contrato', id_contrato=contrato.id_contrato) }}"
-                            class="btn btn-yellow">Editar</a>
+                        <a href="{{ url_for('editar_contrato', id_contrato=contrato.id_contrato) }}" class="btn btn-yellow">Editar</a>
 
                         {% if contrato.link_pdf %}
-                        <a href="{{ contrato.link_pdf }}" target="_blank" class="btn btn-blue" title="Baixar PDF">📄</a>
+                        <a href="{{ contrato.link_pdf }}" target="_blank" class="btn btn-blue" title="Ver Contrato PDF">📄</a>
                         {% endif %}
 
                         <form action="{{ url_for('excluir_contrato', id_contrato=contrato.id_contrato) }}" method="POST"
-                            onsubmit="return confirm('Excluir contrato e TODAS as parcelas?');">
+                            onsubmit="return confirm('ATENÇÃO: Isso excluirá o contrato e suas parcelas pendentes. Se houver parcelas PAGAS, a exclusão será bloqueada pelo sistema. Confirmar?');">
                             <button type="submit" class="btn btn-red">Excluir</button>
                         </form>
                     </div>
@@ -62,8 +66,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="6" class="text-center">Nenhum contrato cadastrado ainda.</td>
-            </tr>
+                <td colspan="7" class="text-center">Nenhum contrato cadastrado ainda.</td> </tr>
             {% endfor %}
         </tbody>
     </table>

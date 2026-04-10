@@ -5,9 +5,9 @@
 {% block content %}
 <div class="auth-container" style="margin-top: 2rem; max-width: 600px;">
     <h1>Novo Contrato de TI</h1>
-    <p>Cadastre os detalhes do contrato para gerar as parcelas mensais.</p>
+    <p>Os valores e vencimentos informados gerarão o fluxo financeiro automaticamente.</p>
     
-   <form method="POST" action="{{ url_for('adicionar_contrato') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('adicionar_contrato') }}" enctype="multipart/form-data">
         <div class="form-group">
             <label for="id_fornecedor">Fornecedor:</label>
             <select name="id_fornecedor" id="id_fornecedor" required>
@@ -19,40 +19,41 @@
         </div>
 
         <div class="form-group">
-            <label for="titulo_contrato">Título / Descrição:</label>
-            <input type="text" id="titulo_contrato" name="titulo_contrato" required placeholder="Ex: Licença Adobe Cloud">
+            <label for="titulo_contrato">Título do Contrato:</label>
+            <input type="text" id="titulo_contrato" name="titulo_contrato" required placeholder="Ex: Link de Internet Dedicado">
         </div>
 
         <div class="form-group-row" style="display: flex; gap: 15px;">
-            <div class="form-group" style="flex: 1;">
-                <label for="valor_total">Valor Total:</label>
+            <div class="form-group" style="flex: 2;">
+                <label for="valor_total">Valor Total do Contrato:</label>
                 <input type="number" id="valor_total" name="valor_total" step="0.01" required placeholder="0.00">
             </div>
             <div class="form-group" style="flex: 1;">
-                <label for="dia_vencimento">Dia Vencimento:</label>
-                <input type="number" id="dia_vencimento" name="dia_vencimento" min="1" max="31" required placeholder="10">
+                <label for="numero_parcelas">Qtd. Parcelas:</label>
+                <input type="number" id="numero_parcelas" name="numero_parcelas" min="1" required placeholder="12">
             </div>
         </div>
 
         <div class="form-group-row" style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
-                <label for="data_inicio">Início:</label>
-                <input type="date" id="data_inicio" name="data_inicio" required>
+                <label for="dia_vencimento">Dia do Vencimento:</label>
+                <input type="number" id="dia_vencimento" name="dia_vencimento" min="1" max="31" required placeholder="10">
             </div>
             <div class="form-group" style="flex: 1;">
-                <label for="data_fim">Término:</label>
-                <input type="date" id="data_fim" name="data_fim" required>
+                <label for="data_inicio">Data de Início:</label>
+                <input type="date" id="data_inicio" name="data_inicio" required>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
-            <button type="submit" class="btn btn-green" style="width: 100%; padding: 14px;">Gerar Contrato e Parcelas</button>
-            <a href="{{ url_for('gerenciar_contratos') }}" class="btn btn-yellow" style="width: 100%; padding: 14px;">Cancelar</a>
-        </div>
         <div class="form-group">
-        <label>Anexar Contrato (PDF):</label>
-        <input type="file" name="arquivo_pdf" accept="application/pdf">
-    </div>
+            <label>Anexar Contrato (PDF) - <small>Opcional</small>:</label>
+            <input type="file" name="arquivo_pdf" accept="application/pdf">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-green" style="padding: 14px; font-weight: bold;">Gerar Contrato e Fluxo</button>
+            <a href="{{ url_for('gerenciar_contratos') }}" class="btn btn-yellow" style="padding: 14px;">Cancelar</a>
+        </div>
     </form>
 </div>
 {% endblock %}

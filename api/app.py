@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from api.routes.auth_routes import auth_bp
-
+import calendar
 
 # --- CONFIGURAÇÃO INICIAL ---
 load_dotenv()
@@ -113,24 +113,33 @@ def admin():
 @nocache
 def gerenciar_usuarios():
     termo_busca = request.args.get('busca', '').strip()
+    tipo_filtro = request.args.get('tipo_filtro', 'nome') # Pega o tipo (Nome, CPF, etc)
+
     try:
-        # Busca usuários com o nome do grupo
-        query = supabase.table("usuario").select("*, grupo_de_usuario(nome)").order("nome")
+        query = supabase.table("usuario").select("*, grupo_de_usuario(nome)")
+
         if termo_busca:
-            query = query.ilike('nome', f'%{termo_busca}%')
-        
-        usuarios = query.execute().data
-        
-        # O 'Voltar' da listagem vai para o menu de Configurações
+            if tipo_filtro == 'nome':
+                query = query.ilike('nome', f'%{termo_busca}%')
+            elif tipo_filtro == 'cpf':
+                termo_limpo = re.sub(r'\D', '', termo_busca)
+                query = query.ilike('cpf', f'%{termo_limpo}%')
+            elif tipo_filtro == 'email':
+                query = query.ilike('email', f'%{termo_busca}%')
+            elif tipo_filtro == 'grupo':
+                query = query.filter('grupo_de_usuario.nome', 'ilike', f'%{termo_busca}%')
+        usuarios = query.order("nome").execute().data
         return render_template('configuracoes/usuario/gerenciar_usuarios.html', 
                                usuarios=usuarios, 
                                termo_busca=termo_busca,
-                               back_url=url_for('configuracoes'))
+                               tipo_filtro=tipo_filtro, # Passamos de volta para o HTML
+                               back_url=url_for('configuracoes'))     
     except Exception as e:
         flash(f"Erro ao carregar usuários: {e}", "erro")
         return render_template('configuracoes/usuario/gerenciar_usuarios.html', 
                                usuarios=[], 
                                termo_busca=termo_busca,
+                               tipo_filtro=tipo_filtro,
                                back_url=url_for('configuracoes'))
 
 @app.route('/admin/usuarios/adicionar', methods=['GET', 'POST'])
@@ -215,6 +224,7 @@ def configuracoes():
     # O 'Voltar' daqui leva o usuário de volta para a tela principal do Admin
     return render_template('configuracoes/configuracoes.html', 
                            back_url=url_for('admin'))
+    
 # --- GERENCIAMENTO DE GRUPOS ---
 
 @app.route('/admin/gerenciar-grupos')
@@ -320,102 +330,131 @@ def gerenciar_contratos():
                                datetime=datetime,
                                back_url=url_for('modulo_financeiro'))
     except Exception as e:
-        print(f"Erro Real: {e}")
-        flash(f"Erro ao carregar módulo de contratos.", "erro")
+        flash(f"Erro ao carregar contratos: {e}", "erro")
         return redirect(url_for('modulo_financeiro'))
 
 @app.route('/admin/financeiro/contratos/adicionar', methods=['GET', 'POST'])
 @admin_required()
 def adicionar_contrato():
-
     if request.method == 'POST':
         try:
-            # 1. Lógica do Upload do PDF
+            # 1. Upload do PDF (Opcional)
             link_pdf = None
             if 'arquivo_pdf' in request.files:
                 file = request.files['arquivo_pdf']
-                if file.filename != '':
+                if file and file.filename != '':
                     file_path = f"pdf_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
                     supabase.storage.from_("contratos").upload(file_path, file.read(), {"content-type": "application/pdf"})
                     link_pdf = supabase.storage.from_("contratos").get_public_url(file_path)
-            # 2. Dados do Form
+
+            # 2. Dados do Contrato
             id_fornecedor = request.form.get('id_fornecedor')
             titulo = request.form.get('titulo_contrato')
             valor_total = float(request.form.get('valor_total'))
             data_ini = datetime.strptime(request.form.get('data_inicio'), '%Y-%m-%d').date()
-            data_fim = datetime.strptime(request.form.get('data_fim'), '%Y-%m-%d').date()
             dia_venc = int(request.form.get('dia_vencimento'))
-            # 3. Salva no Banco
+            num_parcelas = int(request.form.get('numero_parcelas')) # NOVO CAMPO NO FORM
+
+            # 3. Salva Contrato
             novo_contrato = supabase.table("contrato").insert({
                 "id_fornecedor": id_fornecedor,
                 "titulo_contrato": titulo,
                 "valor_total": valor_total,
                 "data_inicio": str(data_ini),
-                "data_fim": str(data_fim),
                 "dia_vencimento": dia_venc,
                 "link_pdf": link_pdf,
                 "status": "Ativo"
             }).execute()
+
             id_gerado = novo_contrato.data[0]['id_contrato']
-            # 4. Geração Automática de Parcelas
-            diff = relativedelta(data_fim, data_ini)
-            total_meses = diff.years * 12 + diff.months + 1
-            valor_parcela = valor_total / total_meses
-            for i in range(total_meses):
-                vencimento_parcela = data_ini + relativedelta(months=i)
+            valor_parcela = valor_total / num_parcelas
+
+            # 4. Geração de Parcelas Baseado no Número Informado
+            for i in range(num_parcelas):
+                vencimento = data_ini + relativedelta(months=i)
                 try:
-                    vencimento_parcela = vencimento_parcela.replace(day=dia_venc)
+                    vencimento = vencimento.replace(day=dia_venc)
                 except ValueError:
-                    vencimento_parcela = vencimento_parcela + relativedelta(day=31)
+                    vencimento = vencimento + relativedelta(day=31)
+
                 supabase.table("financeiro_parcelas").insert({
-                    "id_contrato": id_gerado,
-                    "descricao": f"Parcela {i+1}/{total_meses}",
-                    "valor_esperado": valor_parcela,
-                    "data_vencimento": str(vencimento_parcela),
-                    "status_pagamento": "Pendente"
+                "id_contrato": id_gerado,
+                "descricao": titulo, # Agora a descrição é o título do contrato ou algo específico
+                "numero_parcela": i + 1,
+                "total_parcelas": num_parcelas,
+                "valor_esperado": valor_parcela,
+                "data_vencimento": str(vencimento),
+                "status_pagamento": "Pendente"
                 }).execute()
-            flash("Contrato e parcelas gerados com sucesso!", "sucesso")
+
+            flash("Contrato e parcelas gerados!", "sucesso")
             return redirect(url_for('gerenciar_contratos'))
         except Exception as e:
             flash(f"Erro ao salvar: {e}", "erro")
+
     fornecedores = supabase.table("fornecedor").select("*").order("nome_fantasia").execute().data
-    return render_template('modulos/financeiro/contratos/adicionar_contratos.html', 
-                           fornecedores=fornecedores,
-                           back_url=url_for('gerenciar_contratos'))
+    return render_template('modulos/financeiro/contratos/adicionar_contratos.html', fornecedores=fornecedores)
     
 @app.route('/admin/financeiro/contratos/editar/<int:id_contrato>', methods=['GET', 'POST'])
 @admin_required()
 def editar_contrato(id_contrato):
     try:
         if request.method == 'POST':
-            dados = {
+            novo_status = request.form.get('status')
+            
+            # 1. Tratamento de PDF Posterior
+            link_pdf = request.form.get('link_pdf_atual') # hidden field com link antigo
+            if 'arquivo_pdf' in request.files:
+                file = request.files['arquivo_pdf']
+                if file and file.filename != '':
+                    file_path = f"pdf_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+                    supabase.storage.from_("contratos").upload(file_path, file.read(), {"content-type": "application/pdf"})
+                    link_pdf = supabase.storage.from_("contratos").get_public_url(file_path)
+
+            dados_update = {
                 "titulo_contrato": request.form.get('titulo_contrato'),
-                "status": request.form.get('status'),
+                "status": novo_status,
                 "valor_total": float(request.form.get('valor_total')),
-                "dia_vencimento": int(request.form.get('dia_vencimento'))
+                "dia_vencimento": int(request.form.get('dia_vencimento')),
+                "link_pdf": link_pdf
             }
-            supabase.table("contrato").update(dados).eq("id_contrato", id_contrato).execute()
-            flash("Contrato atualizado com sucesso!", "sucesso")
+            
+            supabase.table("contrato").update(dados_update).eq("id_contrato", id_contrato).execute()
+
+            # 2. Lógica de Cancelamento de Parcelas
+            if novo_status in ['Suspenso', 'Encerrado']:
+                supabase.table("financeiro_parcelas").update({"status_pagamento": "Cancelada"})\
+                    .eq("id_contrato", id_contrato).eq("status_pagamento", "Pendente").execute()
+                flash(f"Contrato {novo_status}. Parcelas pendentes foram canceladas.", "aviso")
+            else:
+                flash("Contrato atualizado!", "sucesso")
+                
             return redirect(url_for('gerenciar_contratos'))
 
+        # GET
         contrato = supabase.table("contrato").select("*, fornecedor(nome_fantasia)").eq("id_contrato", id_contrato).single().execute().data
-        fornecedores = supabase.table("fornecedor").select("*").order("nome_fantasia").execute().data
-        
-        return render_template('modulos/financeiro/contratos/editar_contratos.html', 
-                               contrato=contrato, 
-                               fornecedores=fornecedores,
-                               back_url=url_for('gerenciar_contratos'))
+        return render_template('modulos/financeiro/contratos/editar_contratos.html', contrato=contrato)
     except Exception as e:
-        flash(f"Erro ao acessar contrato: {e}", "erro")
+        flash(f"Erro: {e}", "erro")
         return redirect(url_for('gerenciar_contratos'))
-
+    
 @app.route('/admin/financeiro/contratos/excluir/<int:id_contrato>', methods=['POST'])
 @admin_required()
 def excluir_contrato(id_contrato):
     try:
+        # Verifica se tem parcela paga
+        pagas = supabase.table("financeiro_parcelas").select("id_parcela")\
+            .eq("id_contrato", id_contrato).eq("status_pagamento", "Pago").execute().data
+        
+        if pagas:
+            flash("Impossível excluir: Existem parcelas PAGAS vinculadas a este contrato. Mude o status para 'Encerrado' em vez de excluir.", "erro")
+            return redirect(url_for('gerenciar_contratos'))
+
+        # Se não houver pagas, limpa tudo
         supabase.table("financeiro_parcelas").delete().eq("id_contrato", id_contrato).execute()
         supabase.table("contrato").delete().eq("id_contrato", id_contrato).execute()
-        flash("Contrato e parcelas removidos.", "sucesso")
+        
+        flash("Contrato e parcelas deletados.", "sucesso")
     except Exception as e:
         flash(f"Erro ao excluir: {e}", "erro")
     return redirect(url_for('gerenciar_contratos'))
@@ -518,9 +557,7 @@ def excluir_fornecedor(id_fornecedor):
         flash(f"Erro ao excluir: {e}", "erro")
     return redirect(url_for('gerenciar_fornecedores'))
 
-
 # GERENCIAR FLUXO ---
-
 
 @app.route('/admin/financeiro/fluxos')
 @admin_required()
@@ -528,25 +565,60 @@ def excluir_fornecedor(id_fornecedor):
 def gerenciar_fluxos():
     try:
         hoje = date.today()
-        # Busca parcelas, contratos e fornecedores em uma única consulta
-        parcelas = supabase.table("financeiro_parcelas")\
-            .select("*, contrato(titulo_contrato, fornecedor(nome_fantasia))")\
-            .order("data_vencimento").execute().data
+        
+        # 1. Configuração de Datas Padrão (Mês Atual)
+        primeiro_dia_mes = hoje.replace(day=1).isoformat()
+        ultimo_dia = calendar.monthrange(hoje.year, hoje.month)[1]
+        ultimo_dia_mes = hoje.replace(day=ultimo_dia).isoformat()
 
+        # 2. Captura de Filtros do GET
+        f_fornecedor = request.args.get('id_fornecedor', '')
+        f_contrato = request.args.get('id_contrato', '')
+        f_data_ini = request.args.get('data_inicio', primeiro_dia_mes)
+        f_data_fim = request.args.get('data_fim', ultimo_dia_mes)
+
+        # 3. Query Base com Joins
+        query = supabase.table("financeiro_parcelas")\
+            .select("*, contrato!inner(*, fornecedor!inner(*))")
+
+        # 4. Aplicação Dinâmica dos Filtros
+        if f_fornecedor:
+            query = query.eq('contrato.id_fornecedor', f_fornecedor)
+        if f_contrato:
+            query = query.eq('id_contrato', f_contrato)
+        
+        # Filtro de Data (Sempre aplicado, seja o padrão ou o escolhido)
+        query = query.gte('data_vencimento', f_data_ini).lte('data_vencimento', f_data_fim)
+
+        # Executa a busca ordenada
+        parcelas = query.order("data_vencimento").execute().data
+
+        # 5. Cálculo dos Totais (Baseado nos resultados filtrados)
         total_pendente = sum(p['valor_esperado'] for p in parcelas if p['status_pagamento'] == 'Pendente')
         total_pago = sum(p['valor_esperado'] for p in parcelas if p['status_pagamento'] == 'Pago')
-        
+
+        # 6. Dados para os Dropdowns dos Filtros
+        fornecedores = supabase.table("fornecedor").select("id_fornecedor, nome_fantasia").order("nome_fantasia").execute().data
+        contratos = supabase.table("contrato").select("id_contrato, titulo_contrato").order("titulo_contrato").execute().data
+
         return render_template('modulos/financeiro/fluxos/fluxos.html', 
                                parcelas=parcelas, 
                                total_pendente=total_pendente, 
                                total_pago=total_pago,
                                hoje=hoje,
                                datetime=datetime,
+                               fornecedores=fornecedores,
+                               contratos=contratos,
+                               filtros={
+                                   'id_fornecedor': f_fornecedor,
+                                   'id_contrato': f_contrato,
+                                   'data_inicio': f_data_ini,
+                                   'data_fim': f_data_fim
+                               },
                                back_url=url_for('modulo_financeiro'))
     except Exception as e:
-        flash(f"Erro ao carregar fluxos: {e}", "erro")
+        flash(f"Erro ao filtrar fluxos: {e}", "erro")
         return redirect(url_for('modulo_financeiro'))
-
 
 @app.route('/admin/financeiro/fluxos/adicionar', methods=['GET', 'POST'])
 @admin_required()
@@ -599,19 +671,35 @@ def editar_fluxo(id_parcela):
 @admin_required()
 def excluir_fluxo(id_parcela):
     try:
-        supabase.table("financeiro_parcelas").delete().eq("id_parcela", id_parcela).execute()
-        flash("Lançamento removido!", "sucesso")
-    except Exception as e:
-        flash(f"Erro ao excluir: {e}", "erro")
-    return redirect(url_for('gerenciar_fluxos'))
-    try:
-        supabase.table("financeiro_parcelas").delete().eq("id_parcela", id_parcela).execute()
-        flash("Lançamento removido do fluxo!", "sucesso")
-    except Exception as e:
-        print(f"Erro ao excluir do fluxo: {e}")
-        flash(f"Erro ao excluir: {e}", "erro")
-    return redirect(url_for('gerenciar_fluxo'))
+        # 1. Pegar dados da parcela antes de apagar
+        p = supabase.table("financeiro_parcelas").select("*").eq("id_parcela", id_parcela).single().execute().data
+        manter_valor = request.form.get('manter_valor') == 'sim'
+        id_contrato = p.get('id_contrato')
+        valor_excluido = p['valor_esperado']
 
+        # 2. Deleta a parcela
+        supabase.table("financeiro_parcelas").delete().eq("id_parcela", id_parcela).execute()
+
+        # 3. Redistribuição (Só se o usuário escolheu 'sim' e for de um contrato)
+        if manter_valor and id_contrato:
+            restantes = supabase.table("financeiro_parcelas").select("*")\
+                .eq("id_contrato", id_contrato).eq("status_pagamento", "Pendente").execute().data
+            
+            if restantes:
+                incremento = valor_excluido / len(restantes)
+                for res in restantes:
+                    novo_v = res['valor_esperado'] + incremento
+                    supabase.table("financeiro_parcelas").update({"valor_esperado": novo_v})\
+                        .eq("id_parcela", res['id_parcela']).execute()
+                flash(f"Parcela excluída. R$ {valor_excluido:.2f} redistribuído nas restantes.", "sucesso")
+            else:
+                flash("Parcela excluída. Não há outras parcelas pendentes para redistribuir.", "aviso")
+        else:
+            flash("Parcela excluída. O valor total do contrato foi reduzido.", "sucesso")
+
+    except Exception as e:
+        flash(f"Erro: {e}", "erro")
+    return redirect(url_for('gerenciar_fluxos'))
 # --- EXECUÇÃO DO APP ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
