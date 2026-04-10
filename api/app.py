@@ -7,7 +7,7 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
-from routes.auth_routes import auth_bp
+from api.routes.auth_routes import auth_bp
 
 
 # --- CONFIGURAÇÃO INICIAL ---
