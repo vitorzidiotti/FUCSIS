@@ -1,74 +1,31 @@
 {% extends "base.html" %}
-
-{% block title %}Contratos de TI - FUCSIS{% endblock %}
-
 {% block content %}
 <div class="welcome-header">
-    <h1>Gerenciar Contratos</h1>
-    <p>Visualize e controle os prazos, valores e a saúde dos seus contratos.</p>
+    <h1>Contratos</h1>
+    <p>Selecione um contrato para gerenciar o financeiro e prazos.</p>
 </div>
 
-<div class="toolbar">
-    <div class="search-form"></div>
-    <a href="{{ url_for('adicionar_contrato') }}" class="btn btn-green">Novo Contrato</a>
+<div class="toolbar" style="justify-content: flex-end; margin-bottom: 2rem;">
+    <a href="{{ url_for('adicionar_contrato') }}" class="btn btn-green">+ Novo Contrato</a>
 </div>
 
-<div class="table-container">
-    <table>
-        <thead>
-            <tr>
-                <th>Contrato</th>
-                <th>Fornecedor</th>
-                <th>Valor Total</th>
-                <th>Vencimento</th>
-                <th>Status</th>
-                <th class="text-center">Parcelas</th> <th class="text-center">Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for contrato in contratos %}
-            <tr>
-                <td data-label="Contrato"><strong>{{ contrato.titulo_contrato }}</strong></td>
-                <td data-label="Fornecedor">{{ contrato.fornecedor.nome_fantasia }}</td>
-                <td data-label="Valor">R$ {{ "{:,.2f}".format(contrato.valor_total).replace(',', 'v').replace('.', ',').replace('v', '.') }}</td>
-                <td data-label="Vencimento">
-                    <span class="{% if contrato.data_fim and contrato.data_fim < hoje|string and contrato.status == 'Ativo' %}text-red{% endif %}">
-                        {{ datetime.strptime(contrato.data_fim, '%Y-%m-%d').strftime('%d/%m/%Y') if contrato.data_fim else '---' }}
-                    </span>
-                </td>
-                <td data-label="Status">
-                    {% set status_class = 'btn-blue' if contrato.status == 'Ativo' else 'btn-red' if contrato.status == 'Suspenso' else 'btn-grey' %}
-                    <span class="btn {{ status_class }}" style="padding: 2px 10px; font-size: 0.8rem; cursor: default;">
-                        {{ contrato.status }}
-                    </span>
-                </td>
-
-                <td data-label="Parcelas" class="text-center">
-                    <span class="badge btn-grey" style="font-weight: bold;">
-                        {{ contrato.parcelas_pagas or 0 }} / {{ contrato.total_parcelas or 0 }}
-                    </span>
-                </td>
-
-                <td class="text-center">
-                    <div class="action-buttons" style="display: flex; gap: 5px; justify-content: center;">
-                        <a href="{{ url_for('editar_contrato', id_contrato=contrato.id_contrato) }}" class="btn btn-yellow">Editar</a>
-
-                        {% if contrato.link_pdf %}
-                        <a href="{{ contrato.link_pdf }}" target="_blank" class="btn btn-blue" title="Ver Contrato PDF">📄</a>
-                        {% endif %}
-
-                        <form action="{{ url_for('excluir_contrato', id_contrato=contrato.id_contrato) }}" method="POST"
-                            onsubmit="return confirm('ATENÇÃO: Isso excluirá o contrato e suas parcelas pendentes. Se houver parcelas PAGAS, a exclusão será bloqueada pelo sistema. Confirmar?');">
-                            <button type="submit" class="btn btn-red">Excluir</button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7" class="text-center">Nenhum contrato cadastrado ainda.</td> </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="contratos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+    {% for c in contratos %}
+    <a href="{{ url_for('detalhe_contrato', id_contrato=c.id_contrato) }}" style="text-decoration: none; color: inherit;">
+        <div class="card-contrato" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eee; transition: 0.3s;">
+            <small style="color: #007bff; font-weight: bold; text-transform: uppercase;">{{ c.fornecedor.nome_fantasia }}</small>
+            <h3 style="margin-top: 5px; color: #333;">{{ c.titulo_contrato }}</h3>
+            <div style="margin-top: 15px; display: flex; align-items: center; color: #888; font-size: 0.9rem;">
+                <span>Gerenciar Financeiro &rarr;</span>
+            </div>
+        </div>
+    </a>
+    {% else %}
+    <p>Nenhum contrato cadastrado.</p>
+    {% endfor %}
 </div>
+
+<style>
+    .card-contrato:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: #007bff; }
+</style>
 {% endblock %}

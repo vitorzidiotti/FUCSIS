@@ -1,6 +1,6 @@
 /* ==========================================================================
-   1. ESTILOS GERAIS
-   ========================================================================== */
+   1. ESTILOS GERAIS
+   ========================================================================== */
 body {
   font-family: "Inter", Arial, sans-serif;
   margin: 0;
@@ -10,9 +10,7 @@ body {
   line-height: 1.6;
 }
 
-h1,
-h2,
-h3 {
+h1, h2, h3 {
   color: #212529;
   font-weight: 600;
 }
@@ -29,8 +27,8 @@ a {
 }
 
 /* ==========================================================================
-   2. NAVEGAÇÃO
-   ========================================================================== */
+   2. NAVEGAÇÃO
+   ========================================================================== */
 .header-nav {
   background-color: #ffffff;
   padding: 1rem 2rem;
@@ -45,8 +43,8 @@ a {
 }
 
 /* ==========================================================================
-   3. BOTÕES
-   ========================================================================== */
+   3. BOTÕES (Consolidado)
+   ========================================================================== */
 .btn {
   padding: 0.6rem 1.2rem;
   border: none;
@@ -60,8 +58,7 @@ a {
   align-items: center;
   justify-content: center;
   color: white;
-  /* Texto branco por padrão */
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
   white-space: nowrap;
   box-sizing: border-box;
   line-height: 1;
@@ -72,55 +69,24 @@ a {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.btn-green {
-  background-color: #28a745;
-}
+.btn-green { background-color: #28a745; }
+.btn-green:hover { background-color: #218838; }
 
-.btn-green:hover {
-  background-color: #218838;
-}
+.btn-yellow { background-color: #ffc107; color: #000000 !important; }
+.btn-yellow:hover { background-color: #e0a800; }
 
-/* --- CORREÇÃO AQUI --- */
-.btn-yellow {
-  background-color: #ffc107;
-  color: #000000;
-  /* Forçado para preto puro */
-}
+.btn-red { background-color: #dc3545; }
+.btn-red:hover { background-color: #c82333; }
 
-.btn-yellow:hover {
-  background-color: #e0a800;
-}
+.btn-blue { background-color: #007bff; }
+.btn-blue:hover { background-color: #0069d9; }
 
-.btn-red {
-  background-color: #dc3545;
-}
-
-.btn-red:hover {
-  background-color: #c82333;
-}
-
-.btn-blue {
-  background-color: #007bff;
-}
-
-.btn-blue:hover {
-  background-color: #0069d9;
-}
-
-.btn-grey {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-}
-
-.btn-grey:hover {
-  background-color: #5a6268;
-}
-
+.btn-grey { background-color: #6c757d; color: white; }
+.btn-grey:hover { background-color: #5a6268; }
 
 /* ==========================================================================
-   4. PAINEL (DASHBOARD)
-   ========================================================================== */
+   4. PAINEL (DASHBOARD)
+   ========================================================================== */
 .welcome-header {
   text-align: center;
   margin-bottom: 2.5rem;
@@ -136,7 +102,6 @@ a {
   background-color: #ffffff;
   border-radius: 12px;
   padding: 2rem;
-  text-align: left;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   color: black;
@@ -154,10 +119,10 @@ a {
 }
 
 /* ==========================================================================
-   5. FORMULÁRIOS
-   ========================================================================== */
+   5. FORMULÁRIOS
+   ========================================================================== */
 .auth-container {
-  max-width: 420px;
+  max-width: 500px; /* Aumentado levemente para caber campos lado a lado */
   margin: 3rem auto;
   padding: 2.5rem;
   background: #fff;
@@ -165,32 +130,8 @@ a {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
-.auth-container h1 {
-  text-align: center;
-  color: #2e7d32;
-  margin-bottom: 2rem;
-}
-
-.auth-container form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.3rem;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="date"],
-select,
-textarea {
+input[type="text"], input[type="email"], input[type="password"],
+input[type="number"], input[type="date"], select, textarea {
   width: 100%;
   padding: 12px;
   border: 1px solid #ced4da;
@@ -198,17 +139,10 @@ textarea {
   font-size: 1rem;
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
-  font-family: "Inter", Arial, sans-serif;
+  font-family: inherit;
 }
 
-input[type="checkbox"] {
-  width: auto;
-  margin-right: 0.5rem;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
+input:focus, select:focus, textarea:focus {
   border-color: #4caf50;
   outline: none;
   box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
@@ -223,25 +157,9 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
-.search-form {
-  display: flex;
-  flex-grow: 1;
-  max-width: 600px;
-}
-
-.search-form input {
-  flex-grow: 1;
-  border-radius: 8px 0 0 8px;
-  border-right: none;
-}
-
-.search-form button {
-  border-radius: 0 8px 8px 0;
-}
-
 /* ==========================================================================
-   6. TABELAS
-   ========================================================================== */
+   6. TABELAS (Limpo e Organizado)
+   ========================================================================== */
 .table-container {
   background: white;
   border-radius: 12px;
@@ -249,7 +167,6 @@ textarea:focus {
   padding: 1.5rem;
   margin-top: 1rem;
   overflow-x: auto;
-  /* Garante que não quebre no celular */
 }
 
 table {
@@ -258,49 +175,7 @@ table {
   min-width: 700px;
 }
 
-/* Cabeçalho da Tabela */
-table thead th {
-  text-align: left;
-  padding: 12px 15px;
-  border-bottom: 2px solid #eee;
-  color: #888;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Linhas da Tabela */
-table tbody td {
-  padding: 15px;
-  /* Espaçamento interno fixo */
-  border-bottom: 1px solid #f9f9f9;
-  vertical-align: middle;
-  /* Alinha o texto no meio verticalmente */
-  color: #333;
-  font-size: 0.95rem;
-}
-
-/* Efeito ao passar o mouse na linha */
-table tbody tr:hover {
-  background-color: #fcfcfc;
-}
-
-/* Ajuste nos botões de ação dentro da tabela */
-.action-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-
-.btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-th,
-td {
+th, td {
   padding: 1rem;
   border-bottom: 1px solid #e9ecef;
   vertical-align: middle;
@@ -308,126 +183,48 @@ td {
 
 th {
   font-weight: 600;
-  color: #495057;
-  font-size: 0.9rem;
+  color: #888;
+  font-size: 0.85rem;
   text-transform: uppercase;
-}
-
-tr:last-child td {
-  border-bottom: none;
-}
-
-.table-container th:nth-child(4),
-.table-container td:nth-child(4) {
+  letter-spacing: 1px;
   text-align: left;
 }
 
-.table-container th:nth-child(1),
-.table-container td:nth-child(1),
-.table-container th:nth-child(2),
-.table-container td:nth-child(2),
-.table-container th:nth-child(3),
-.table-container td:nth-child(3),
-.table-container th:nth-child(5),
-.table-container td:nth-child(5),
-.table-container th:nth-child(6),
-.table-container td:nth-child(6),
-.table-container th:nth-child(7),
-.table-container td:nth-child(7) {
+/* Centralização de colunas específicas */
+.text-center, 
+th.text-center, 
+td.text-center {
   text-align: center;
+}
+
+table tbody tr:hover {
+  background-color: #fcfcfc;
 }
 
 .action-buttons {
   display: flex;
-  gap: 0.5rem;
-  align-items: center;
+  gap: 8px;
   justify-content: center;
 }
 
-.action-buttons form {
-  margin: 0;
-  display: flex;
-}
-
-.search-form .btn,
-.action-buttons .btn {
-  width: 90px;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-
-.no-results {
-  text-align: center;
-  padding: 2rem;
-  color: #6c757d;
-}
-
-.text-center {
-  text-align: center;
-}
-
 /* ==========================================================================
-   7. RESPONSIVIDADE (TELAS PEQUENAS)
-   ========================================================================== */
+   7. RESPONSIVIDADE
+   ========================================================================== */
 @media (max-width: 768px) {
-  .header-nav {
-    padding: 1rem;
-    justify-content: space-between;
-  }
-
-  .main-container {
-    padding: 0 1rem;
-  }
-
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-form {
-    display: block;
-  }
-
-  .search-form input {
-    border-radius: 8px;
-    border-right: 1px solid #ced4da;
-    margin-bottom: 0.5rem;
-  }
-
-  .search-form button {
-    border-radius: 8px;
-    width: 100%;
-  }
-
-  .table-container {
-    padding: 0.5rem;
-  }
-
-  .table-container thead {
-    display: none;
-  }
-
+  .table-container thead { display: none; }
   .table-container tr {
     display: block;
     margin-bottom: 1rem;
     border: 1px solid #e9ecef;
     border-radius: 8px;
     padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
-
   .table-container td {
     display: block;
     text-align: right;
     padding: 0.7rem 0;
     border-bottom: 1px dotted #ccc;
-    font-size: 0.95rem;
   }
-
-  .table-container td:last-child {
-    border-bottom: none;
-  }
-
   .table-container td::before {
     content: attr(data-label);
     float: left;
@@ -435,22 +232,12 @@ tr:last-child td {
     text-transform: uppercase;
     font-size: 0.85rem;
     color: #495057;
-    margin-right: 1rem;
-  }
-
-  .action-buttons {
-    justify-content: flex-end;
-    margin-top: 0.5rem;
-  }
-
-  .action-buttons .btn {
-    white-space: nowrap;
   }
 }
 
 /* ==========================================================================
-   8. SISTEMA DE NOTIFICAÇÕES (SWEETALERT2 TOASTS)
-   ========================================================================== */
+   8. NOTIFICAÇÕES (TOASTS)
+   ========================================================================== */
 .toast-container {
   position: fixed;
   bottom: 20px;
@@ -470,302 +257,82 @@ tr:last-child td {
   display: flex;
   align-items: center;
   gap: 10px;
-  opacity: 0;
-  transform: translateX(-30px);
   animation: toast-in 0.5s forwards;
 }
 
-@keyframes toast-in {
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
+@keyframes toast-in { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
 
-.toast.hide {
-  animation: toast-out 0.5s forwards;
-}
-
-@keyframes toast-out {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-}
-
-.toast-sucesso {
-  background-color: #28a745;
-  border-left: 5px solid #218838;
-}
-
-.toast-erro {
-  background-color: #dc3545;
-  border-left: 5px solid #c82333;
-}
-
-.toast-info {
-  background-color: #17a2b8;
-  border-left: 5px solid #138496;
-}
-
-body.swal2-toast-shown .swal2-container {
-  z-index: 1100;
-}
+.toast-sucesso { background-color: #28a745; border-left: 5px solid #218838; }
+.toast-erro { background-color: #dc3545; border-left: 5px solid #c82333; }
 
 /* ==========================================================================
-   9. ESTILOS DO MODAL DE AJUSTE (Adicionados)
-   ========================================================================== */
+   9. MODAIS
+   ========================================================================== */
 .modal {
   display: none;
   position: fixed;
   z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
+  left: 0; top: 0; width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.4);
-  justify-content: center;
-  align-items: center;
-  padding-top: 50px;
+  justify-content: center; align-items: center;
 }
 
 .modal-content {
-  background-color: #fefefe;
-  margin: auto;
+  background-color: #fff;
   padding: 30px;
-  border: 1px solid #888;
-  width: 80%;
-  max-width: 900px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2),
-    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  width: 90%; max-width: 600px;
+  border-radius: 12px;
   position: relative;
-}
-
-.close-button {
-  color: #ffffff;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.close-button:hover,
-.close-button:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.product-adjustment-item {
-  padding: 15px 0;
-  border-bottom: 1px dashed #eee;
-}
-
-.product-adjustment-item:last-child {
-  border-bottom: none;
-}
-
-.product-adjustment-item strong {
-  font-size: 1.1em;
-  display: block;
-  margin-bottom: 12px;
-}
-
-.product-adjustment-item strong small {
-  font-weight: normal;
-  font-size: 0.9em;
-  color: #555;
-}
-
-.product-adjustment-item .controls {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 15px;
-}
-
-.control-group {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  position: relative;
-}
-
-.product-adjustment-item .controls input[type="number"] {
-  width: 80px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.reason-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.reason-group label {
-  font-weight: bold;
-  font-size: 0.9em;
-  color: #333;
-}
-
-.reason-group input[type="text"] {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-.product-adjustment-item .controls input[type="radio"] {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-
-  width: 18px;
-  height: 18px;
-  border: 1px solid #6c757d;
-  border-radius: 3px;
-
-  cursor: pointer;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.product-adjustment-item .controls input[type="radio"]:checked {
-  background-color: #28a745;
-  border-color: #28a745;
-}
-
-.product-adjustment-item .controls input[type="radio"]:checked::after {
-  content: "\2713";
-  font-size: 14px;
-  font-weight: bold;
-  color: white;
-
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.product-adjustment-item .controls label {
-  cursor: pointer;
-  justify-items: center;
-  margin-left: 0;
-}
-
-.modal-actions {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.modal-actions .btn {
-  width: auto;
-  min-width: 120px;
-  padding: 0.8rem 1.2rem;
-  font-size: 1rem;
-  font-weight: 700;
 }
 
 /* ==========================================================================
-   10. ESTILOS DA BUSCA DE CLIENTE (Adicionados)
-   ========================================================================== */
-.client-info-box {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-top: 1rem;
-}
-
-.client-info-box h4 {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #212529;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 0.5rem;
-}
-
-.client-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.client-details div {
-  font-size: 0.9rem;
-}
-
-.client-details label {
-  font-weight: 600;
-  color: #495057;
-  display: block;
-  margin-bottom: 0.2rem;
-}
-
-.client-details span {
-  font-size: 1.1em;
-  color: #000;
-}
-
-.client-spending {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
-}
-
-#cpf-feedback {
-  margin-top: 8px;
-  font-size: 0.9em;
-}
-
-.cpf-error {
-  color: #dc3545;
-}
-
-.cpf-loading {
-  color: #007bff;
-}
-
-/* ==========================================================================
-   VISUALIZADOR DE SENHA
+   10. BUSCA DE CLIENTE / SENHA
    ========================================================================== */
-.password-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-wrapper input[type="password"],
-.password-wrapper input[type="text"] {
-  width: 100%;
-  padding-right: 40px;
-  /* Dá um espaço para o texto não ficar embaixo do olho */
-}
-
+.password-wrapper { position: relative; display: flex; align-items: center; }
 .toggle-password {
-  position: absolute;
-  right: 12px;
-  cursor: pointer;
-  user-select: none;
-  /* Evita que o usuário selecione o emoji do olho sem querer */
-  font-size: 1.2rem;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  position: absolute; right: 12px; cursor: pointer;
+  font-size: 1.2rem; opacity: 0.7;
 }
 
-.toggle-password:hover {
-  opacity: 1;
+/* ==========================================================================
+   11. SEÇÃO DE UPLOAD PDF (NOVO & BONITO)
+   ========================================================================== */
+.pdf-upload-section { margin: 20px 0; }
+.section-label { display: block; font-weight: 700; color: #495057; margin-bottom: 10px; font-size: 0.9rem; }
+
+.pdf-card {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
+
+.current-file-info {
+    border-bottom: 1px solid #f1f3f5;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-badge { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; }
+.status-badge.success { color: #2b8a3e; }
+.status-badge.warning { color: #e67e22; }
+
+.view-pdf-link {
+    font-size: 0.85rem; color: #228be6; font-weight: 600;
+    border: 1px solid #228be6; padding: 5px 12px; border-radius: 6px;
+}
+.view-pdf-link:hover { background: #228be6; color: white; }
+
+.upload-wrapper input[type="file"] { display: none; }
+
+.custom-file-upload {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #f8f9fa; border: 2px dashed #dee2e6;
+    padding: 12px 20px; border-radius: 8px; cursor: pointer;
+    width: 100%; justify-content: center; font-weight: 600;
+}
+.custom-file-upload:hover { background: #e9ecef; border-color: #ced4da; }

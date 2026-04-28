@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="header-gestao" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+    <div>
+        <h1 style="margin: 0;">{{ c.titulo_contrato }}</h1>
+        <p style="color: #666; font-size: 1.1rem;">Fornecedor: <strong>{{ c.fornecedor.nome_fantasia }}</strong></p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('editar_contrato', id_contrato=c.id_contrato) }}" class="btn btn-yellow">Editar Contrato</a>
+        {% if c.link_pdf %}
+        <a href="{{ c.link_pdf }}" target="_blank" class="btn btn-blue">Ver Contrato</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="stats-gestao" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 2.5rem;">
+    <div class="stat-card" style="background: white; padding: 20px; border-radius: 12px; border-top: 4px solid #28a745;">
+        <small>TOTAL PAGO</small>
+        <h2 style="color: #28a745; margin: 5px 0;">R$ {{ "{:,.2f}".format(v_pago).replace(',', 'v').replace('.', ',').replace('v', '.') }}</h2>
+    </div>
+    <div class="stat-card" style="background: white; padding: 20px; border-radius: 12px; border-top: 4px solid #dc3545;">
+        <small>RESTANTE</small>
+        <h2 style="color: #dc3545; margin: 5px 0;">R$ {{ "{:,.2f}".format(v_restante).replace(',', 'v').replace('.', ',').replace('v', '.') }}</h2>
+    </div>
+    <div class="stat-card" style="background: white; padding: 20px; border-radius: 12px; border-top: 4px solid #007bff;">
+    <small style="color: #888; font-weight: 600;">PROGRESSO FINANCEIRO</small>
+    
+    {% set total_geral = v_pago + v_restante %}
+    {% set porcentagem = (v_pago / total_geral * 100) if total_geral > 0 else 0 %}
+    
+    <h2 style="margin: 5px 0; color: #333;">
+        {{ "{:.2f}".format(porcentagem).replace('.', ',') }}%
+    </h2>
+    
+    <p style="font-size: 0.9rem; color: #666; margin: 0;">
+        {{ p_pagas }} de {{ p_totais }} parcelas pagas
+    </p>
+</div>
+</div>
+
+<div class="table-container" style="background: white; border-radius: 12px; padding: 20px;">
+    <h3 style="margin-bottom: 20px;">Fluxo de Pagamentos</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Vencimento</th>
+                <th>Parcela</th>
+                <th>Valor</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in parcelas %}
+            <tr>
+                <td>{{ datetime.strptime(p.data_vencimento, '%Y-%m-%d').strftime('%d/%m/%Y') }}</td>
+                <td>{{ p.numero_parcela }}/{{ p.total_parcelas }}</td>
+                <td>R$ {{ "{:,.2f}".format(p.valor_esperado).replace(',', 'v').replace('.', ',').replace('v', '.') }}</td>
+                <td>
+                    <span style="color: {{ '#28a745' if p.status_pagamento.lower() == 'pago' else '#ffc107' }}; font-weight: bold;">
+                        ● {{ p.status_pagamento }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -25,3 +25,15 @@ function showToast(message, category = 'info') {
         });
     }, 5000); // O pop-up some após 5 segundos
 }
+
+function updateFileName(input) {
+    const fileName = input.files[0] ? input.files[0].name : "Escolher novo PDF";
+    const display = document.getElementById('file-name-display');
+    display.innerText = fileName;
+    
+    // Opcional: muda a cor da borda quando seleciona
+    if (input.files[0]) {
+        display.parentElement.style.borderColor = "#228be6";
+        display.parentElement.style.background = "#e7f5ff";
+    }
+}

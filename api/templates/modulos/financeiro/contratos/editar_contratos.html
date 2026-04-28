@@ -7,58 +7,67 @@
     <h1>Editar Contrato</h1>
     <p>Ajuste os detalhes ou altere o status para gerenciar as parcelas.</p>
 
-    <form method="POST" action="{{ url_for('editar_contrato', id_contrato=contrato.id_contrato) }}" enctype="multipart/form-data">
-        <input type="hidden" name="link_pdf_atual" value="{{ contrato.link_pdf }}">
-
+    <form method="POST" action="{{ url_for('editar_contrato', id_contrato=contrato.id_contrato or contrato.id) }}" enctype="multipart/form-data">
+        
         <div class="form-group">
             <label>Título do Contrato:</label>
             <input type="text" name="titulo_contrato" value="{{ contrato.titulo_contrato }}" required>
         </div>
-        
         <div class="form-group">
             <label>Status do Contrato:</label>
-            <select name="status">
+            <select name="status" class="form-control">
                 <option value="Ativo" {% if contrato.status == 'Ativo' %}selected{% endif %}>Ativo</option>
-                <option value="Suspenso" {% if contrato.status == 'Suspenso' %}selected{% endif %}>Suspenso (Cancela parcelas futuras)</option>
-                <option value="Encerrado" {% if contrato.status == 'Encerrado' %}selected{% endif %}>Encerrado (Finaliza financeiro)</option>
+                <option value="Encerrado" {% if contrato.status == 'Encerrado' %}selected{% endif %}>Encerrado</option>
             </select>
         </div>
 
-        <div class="form-group-row" style="display: flex; gap: 15px;">
-            <div class="form-group" style="flex: 1;">
-                <label>Valor Total:</label>
-                <input type="number" name="valor_total" step="0.01" value="{{ contrato.valor_total }}" required>
-            </div>
-            <div class="form-group" style="flex: 1;">
-                <label>Dia Vencimento:</label>
-                <input type="number" name="dia_vencimento" value="{{ contrato.dia_vencimento }}" required>
-            </div>
+        <div style="margin-top: 0.1rem; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 1rem;">
+            <h4 style="margin-bottom: 5px; color: #856404;">Regras do Sistema:</h4>
+            <ul style="font-size: 0.8rem; color: #856404; padding-left: 20px; margin: 0;">
+                <li>Mudar para <strong>Encerrado</strong> cancela automaticamente as parcelas pendentes no Fluxo.</li>
+                <li>Mudar para <strong>Ativo</strong> reativa parcelas que estavam canceladas.</li>
+            </ul>
         </div>
 
-        <div class="form-group" style="background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
-            <label>Contrato em PDF:</label>
-            {% if contrato.link_pdf %}
-                <p style="font-size: 0.85rem; color: #28a745; margin-bottom: 10px;">✅ Arquivo já anexado ao sistema.</p>
-                <a href="{{ contrato.link_pdf }}" target="_blank" class="btn btn-blue" style="font-size: 0.8rem; padding: 5px 10px;">Ver Arquivo Atual</a>
-                <p style="margin-top: 10px; font-size: 0.75rem; color: #666;">Para substituir, selecione um novo arquivo abaixo:</p>
-            {% else %}
-                <p style="font-size: 0.85rem; color: #dc3545; margin-bottom: 10px;">❌ Nenhum arquivo anexado ainda.</p>
-            {% endif %}
-            <input type="file" name="arquivo_pdf" accept="application/pdf" style="margin-top: 5px;">
+       <div class="pdf-upload-section">
+    <label class="section-label">Documentação do Contrato</label>
+    
+    <div class="pdf-card">
+        {% if contrato.link_pdf %}
+            <div class="current-file-info">
+                <div class="status-badge success">
+                    <span class="icon">📄</span>
+                    <span>Arquivo anexado com sucesso</span>
+                </div>
+                <a href="{{ contrato.link_pdf }}" target="_blank" class="view-pdf-link">
+                    Visualizar documento atual
+                </a>
+            </div>
+        {% else %}
+            <div class="current-file-info">
+                <div class="status-badge warning">
+                    <span class="icon">⚠️</span>
+                    <span>Nenhum documento disponível</span>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="upload-wrapper">
+            <p class="upload-title">Deseja substituir o arquivo?</p>
+            <label for="arquivo_pdf" class="custom-file-upload">
+                <span class="upload-icon">☁️</span> 
+                <span id="file-name-display">Escolher novo PDF</span>
+            </label>
+            <input type="file" id="arquivo_pdf" name="arquivo_pdf" accept="application/pdf" onchange="updateFileName(this)">
+            <small class="upload-hint">Formatos aceitos: PDF (Máx. 5MB)</small>
         </div>
+    </div>
+</div>
 
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
             <button type="submit" class="btn btn-green" style="padding: 14px; font-weight: bold;">Salvar Alterações</button>
-            <a href="{{ url_for('gerenciar_contratos') }}" class="btn btn-yellow" style="padding: 14px;">Cancelar</a>
+            <a href="{{ url_for('detalhe_contrato', id_contrato=contrato.id_contrato or contrato.id) }}" class="btn btn-yellow" style="padding: 14px;">Cancelar</a>
         </div>
     </form>
-
-    <div style="margin-top: 1.5rem; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeeba;">
-        <h4 style="margin-bottom: 5px; color: #856404;">Regras do Sistema:</h4>
-        <ul style="font-size: 0.8rem; color: #856404; padding-left: 20px;">
-            <li>Mudar para <strong>Suspenso</strong> ou <strong>Encerrado</strong> cancela automaticamente as parcelas pendentes no Fluxo.</li>
-            <li>O valor total e vencimento servem para controle. Alterá-los aqui não recalcula parcelas já existentes.</li>
-        </ul>
-    </div>
 </div>
 {% endblock %}
