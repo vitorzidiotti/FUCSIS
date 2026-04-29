@@ -439,50 +439,60 @@ def adicionar_contrato():
 @admin_required()
 def editar_contrato(id_contrato):
     try:
+        res_db = supabase.table("contrato").select("*").eq("id_contrato", id_contrato).single().execute()
+        c_atual = res_db.data
+
         if request.method == 'POST':
-            novo_status = request.form.get('status')
-            
-            # Recupera link atual se não houver novo upload
-            link_pdf = supabase.table("contrato").select("link_pdf").eq("id_contrato", id_contrato).single().execute().data['link_pdf']
-            
+            f_titulo = request.form.get('titulo_contrato') or c_atual['titulo_contrato']
+            f_status = request.form.get('status') or c_atual['status']
+            f_valor = request.form.get('valor_total')
+            f_venc = request.form.get('dia_vencimento')
+
+            valor_final = float(f_valor) if f_valor else c_atual['valor_total']
+            venc_final = int(f_venc) if f_venc else c_atual['dia_vencimento']
+
+            link_pdf = c_atual.get('link_pdf')
             if 'arquivo_pdf' in request.files:
                 file = request.files['arquivo_pdf']
                 if file and file.filename != '':
-                    file_path = f"pdf_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+                    file_path = f"pdf_{id_contrato}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
                     supabase.storage.from_("contratos").upload(file_path, file.read(), {"content-type": "application/pdf"})
                     link_pdf = supabase.storage.from_("contratos").get_public_url(file_path)
 
             dados_update = {
-                "titulo_contrato": request.form.get('titulo_contrato'),
-                "status": novo_status,
-                "valor_total": float(request.form.get('valor_total')),
-                "dia_vencimento": int(request.form.get('dia_vencimento')),
+                "titulo_contrato": f_titulo,
+                "status": f_status,
+                "valor_total": valor_final,
+                "dia_vencimento": venc_final,
                 "link_pdf": link_pdf
             }
             
             supabase.table("contrato").update(dados_update).eq("id_contrato", id_contrato).execute()
 
-            # --- Lógica Reversível (Ativo/Encerrado) ---
-            if novo_status == 'Encerrado':
-                supabase.table("financeiro_parcelas").update({"status_pagamento": "Cancelada"})\
-                    .eq("id_contrato", id_contrato).eq("status_pagamento", "Pendente").execute()
-                flash("Contrato encerrado e parcelas pendentes canceladas.", "aviso")
-            elif novo_status == 'Ativo':
-                supabase.table("financeiro_parcelas").update({"status_pagamento": "Pendente"})\
-                    .eq("id_contrato", id_contrato).eq("status_pagamento", "Cancelada").execute()
-                flash("Contrato reativado e parcelas recuperadas.", "sucesso")
-            
+            # --- CORREÇÃO DA LÓGICA DE STATUS ---
+            # Só entra aqui se o status enviado for DIFERENTE do status atual no banco
+            if f_status != c_atual['status']:
+                if f_status == 'Encerrado':
+                    supabase.table("financeiro_parcelas").update({"status_pagamento": "Cancelada"})\
+                        .eq("id_contrato", id_contrato).eq("status_pagamento", "Pendente").execute()
+                    flash("Contrato encerrado. Parcelas pendentes foram canceladas.", "aviso")
+                elif f_status == 'Ativo':
+                    supabase.table("financeiro_parcelas").update({"status_pagamento": "Pendente"})\
+                        .eq("id_contrato", id_contrato).eq("status_pagamento", "Cancelada").execute()
+                    flash("Contrato reativado. Parcelas voltaram para a agenda.", "sucesso")
+            else:
+                flash("Contrato atualizado com sucesso!", "sucesso")
+
             return redirect(url_for('detalhe_contrato', id_contrato=id_contrato))
 
-        # GET
-        contrato = supabase.table("contrato").select("*, fornecedor(nome_fantasia)").eq("id_contrato", id_contrato).single().execute().data
         return render_template('modulos/financeiro/contratos/editar_contratos.html', 
-                               contrato=contrato,
+                               contrato=c_atual,
                                back_url=url_for('detalhe_contrato', id_contrato=id_contrato))
     except Exception as e:
-        flash(f"Erro: {e}", "erro")
+        print(f"ERRO CRÍTICO EDITAR: {e}")
+        flash(f"Erro ao processar alteração: {e}", "erro")
         return redirect(url_for('gerenciar_contratos'))
-
+    
 @app.route('/admin/financeiro/contratos/excluir/<int:id_contrato>', methods=['POST'])
 @admin_required()
 def excluir_contrato(id_contrato):
@@ -519,7 +529,6 @@ def gerenciar_fornecedores():
         flash(f"Erro ao carregar lista de fornecedores: {e}", "erro")
         return redirect(url_for('modulo_financeiro'))
 
-
 @app.route('/admin/financeiro/fornecedores/adicionar', methods=['GET', 'POST'])
 @admin_required()
 def adicionar_fornecedor():
@@ -546,7 +555,6 @@ def adicionar_fornecedor():
     # GET: Abre o formulário
     return render_template('modulos/financeiro/fornecedores/adicionar_fornecedores.html',
                            back_url=url_for('gerenciar_fornecedores')) # Volta para a Lista
-
 
 @app.route('/admin/financeiro/fornecedores/editar/<int:id_fornecedor>', methods=['GET', 'POST'])
 @admin_required()
@@ -580,7 +588,6 @@ def editar_fornecedor(id_fornecedor):
     except Exception as e:
         flash(f"Erro técnico na edição: {e}", "erro")
         return redirect(url_for('gerenciar_fornecedores'))
-
 
 @app.route('/admin/financeiro/fornecedores/excluir/<int:id_fornecedor>', methods=['POST'])
 @admin_required()

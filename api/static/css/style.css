@@ -295,10 +295,19 @@ table tbody tr:hover {
 }
 
 /* ==========================================================================
-   11. SEÇÃO DE UPLOAD PDF (NOVO & BONITO)
+   11. SEÇÃO DE UPLOAD PDF (AJUSTADO E ALINHADO)
    ========================================================================== */
-.pdf-upload-section { margin: 20px 0; }
-.section-label { display: block; font-weight: 700; color: #495057; margin-bottom: 10px; font-size: 0.9rem; }
+.pdf-upload-section { 
+    margin: 20px 0; 
+}
+
+.section-label { 
+    display: block; 
+    font-weight: 700; 
+    color: #495057; 
+    margin-bottom: 10px; 
+    font-size: 0.9rem; 
+}
 
 .pdf-card {
     background: #ffffff;
@@ -306,6 +315,7 @@ table tbody tr:hover {
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-sizing: border-box;
 }
 
 .current-file-info {
@@ -317,22 +327,74 @@ table tbody tr:hover {
     align-items: center;
 }
 
-.status-badge { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; }
+.status-badge { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+}
+
 .status-badge.success { color: #2b8a3e; }
 .status-badge.warning { color: #e67e22; }
 
 .view-pdf-link {
-    font-size: 0.85rem; color: #228be6; font-weight: 600;
-    border: 1px solid #228be6; padding: 5px 12px; border-radius: 6px;
+    font-size: 0.85rem; 
+    color: #228be6; 
+    font-weight: 600;
+    border: 1px solid #228be6; 
+    padding: 5px 12px; 
+    border-radius: 6px;
+    line-height: 1; /* Garante que o texto fique centralizado no botão */
 }
 .view-pdf-link:hover { background: #228be6; color: white; }
+
+/* Wrapper do Upload */
+.upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.upload-title {
+    font-size: 0.8rem;
+    color: #868e96;
+    margin-bottom: 10px;
+    text-align: left; /* Garante que o título não fique "voando" */
+}
 
 .upload-wrapper input[type="file"] { display: none; }
 
 .custom-file-upload {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: #f8f9fa; border: 2px dashed #dee2e6;
-    padding: 12px 20px; border-radius: 8px; cursor: pointer;
-    width: 100%; justify-content: center; font-weight: 600;
+    display: flex; /* Mudado de inline-flex para flex */
+    align-items: center; 
+    justify-content: center; 
+    gap: 12px;
+    background: #f8f9fa; 
+    border: 2px dashed #dee2e6;
+    padding: 15px 20px; /* Padding mais simétrico */
+    border-radius: 8px; 
+    cursor: pointer;
+    width: 100%; 
+    font-weight: 600;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
 }
-.custom-file-upload:hover { background: #e9ecef; border-color: #ced4da; }
+
+.custom-file-upload:hover { 
+    background: #f1f3f5; 
+    border-color: #adb5bd; 
+}
+
+/* Centralização do Ícone e Texto dentro do Label */
+.upload-icon {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+}
+
+#file-name-display {
+    line-height: 1;
+    display: inline-block;
+}

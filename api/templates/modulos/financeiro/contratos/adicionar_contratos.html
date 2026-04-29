@@ -5,9 +5,10 @@
 {% block content %}
 <div class="auth-container" style="margin-top: 2rem; max-width: 600px;">
     <h1>Novo Contrato de TI</h1>
-    <p>Os valores e vencimentos informados gerarão o fluxo financeiro automaticamente.</p>
+    <p style="margin-bottom: 2rem;">Os valores e vencimentos informados gerarão o fluxo financeiro automaticamente.</p>
     
     <form method="POST" action="{{ url_for('adicionar_contrato') }}" enctype="multipart/form-data">
+        
         <div class="form-group">
             <label for="id_fornecedor">Fornecedor:</label>
             <select name="id_fornecedor" id="id_fornecedor" required>
@@ -45,9 +46,20 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label>Anexar Contrato (PDF) - <small>Opcional</small>:</label>
-            <input type="file" name="arquivo_pdf" accept="application/pdf">
+        <div class="pdf-upload-section">
+            <label class="section-label">Documentação do Contrato (Opcional)</label>
+            
+            <div class="pdf-card">
+                <div class="upload-wrapper">
+                    <p class="upload-title">Anexar arquivo PDF:</p>
+                    <label for="arquivo_pdf" class="custom-file-upload">
+                        <span class="upload-icon">☁️</span> 
+                        <span id="file-name-display">Escolher arquivo PDF</span>
+                    </label>
+                    <input type="file" id="arquivo_pdf" name="arquivo_pdf" accept="application/pdf" onchange="updateFileName(this)">
+                    <small class="upload-hint">Formatos aceitos: PDF (Máx. 5MB)</small>
+                </div>
+            </div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1.5rem;">
@@ -56,4 +68,21 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function updateFileName(input) {
+        const fileName = input.files[0] ? input.files[0].name : "Escolher arquivo PDF";
+        const display = document.getElementById('file-name-display');
+        display.innerText = fileName;
+        
+        // Feedback visual quando seleciona
+        if (input.files[0]) {
+            display.parentElement.style.borderColor = "#28a745";
+            display.parentElement.style.background = "#f0fff4";
+            display.parentElement.style.borderStyle = "solid";
+        }
+    }
+</script>
 {% endblock %}
