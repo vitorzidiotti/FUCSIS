@@ -1,124 +1,90 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - Sistema</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-</head>
-<body class="auth-body">
-    <div class="auth-container">
-        <h1>Cadastro de Usuário</h1>
-        <form method="POST" class="auth-form" action="{{ url_for('auth.cadastro') }}">
-            <div class="form-group">
-                <label for="nome">Nome:</label>
-                <input type="text" name="nome" id="nome" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" name="email" id="email" value="{{ email_salvo | default('') }}" required>
-            </div>
-            <div class="form-group">
-                <label for="cpf">CPF:</label>
-                <input type="text" name="cpf" id="cpf" required maxlength="14">
-            </div>
-            <div class="form-group">
-                <label for="senha">Senha:</label>
-                <div class="password-wrapper">
-                    <input type="password" name="senha" id="senha" required>
-                    <span class="toggle-password" id="togglePassword" title="Mostrar senha">👁️</span>
-                </div>
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-green">Cadastrar</button>
-            </div>
-        </form>
-        <p class="auth-switch">Já tem conta? <a href="{{ url_for('auth.login') }}">Faça login</a></p>
+{% extends "base.html" %}
+
+{% block title %}Criar Conta - FUCSIS{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="margin-top: 4rem; max-width: 450px;">
+    <div class="auth-header" style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="color: #2e7d32; margin-bottom: 0.5rem;">Junte-se ao FUCSIS!</h1>
+        <p style="font-size: 0.9rem; color: #666;">Preencha os dados abaixo para acessar o sistema.</p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const Toast = Swal.mixin({
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 4000,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer);
-                        toast.addEventListener('mouseleave', Swal.resumeTimer);
-                    }
-                });
+    <form method="POST" action="{{ url_for('auth.cadastro') }}" class="auth-form">
+        <div class="form-group">
+            <label for="nome">Nome Completo:</label>
+            <input type="text" name="nome" id="nome"required>
+        </div>
 
-                const flashMessages = {{ messages | tojson }};
+        <div class="form-group">
+            <label for="email">E-mail Institucional:</label>
+            <input type="email" name="email" id="email" value="{{ email_salvo | default('') }}"required>
+        </div>
 
-                flashMessages.forEach(function (msg) {
-                    const category = msg[0];
-                    const message = msg[1];
-                    const iconType = category === 'sucesso' ? 'success' : category === 'erro' ? 'error' : 'info';
+        <div class="form-group">
+            <label for="cpf">CPF:</label>
+            <input type="text" name="cpf" id="cpf"required maxlength="14">
+        </div>
 
-                    Toast.fire({
-                        icon: iconType,
-                        title: message
-                    });
-                });
+        <div class="form-group">
+            <label for="senha">Senha de Acesso:</label>
+            <div class="password-wrapper">
+                <input type="password" name="senha" id="senha"required>
+                <span class="toggle-password" id="togglePassword" title="Mostrar senha">👁️</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-green" style="width: 100%; padding: 14px; font-size: 1rem;">
+                Finalizar Cadastro
+            </button>
+        </div>
+    </form>
+
+    <div class="auth-switch" style="text-align: center; margin-top: 1.5rem; border-top: 1px solid #eee; padding-top: 1.5rem;">
+        <p style="font-size: 0.9rem; color: #666;">
+            Já possui uma conta? <a href="{{ url_for('auth.login') }}" style="color: #2e7d32; font-weight: 600;">Faça login aqui</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Máscara do CPF (Melhorada)
+        const cpfInput = document.getElementById("cpf");
+        if (cpfInput) {
+            cpfInput.addEventListener("input", function(e) {
+                let v = e.target.value.replace(/\D/g, "");
+                if (v.length > 11) v = v.substring(0, 11);
+                
+                if (v.length <= 3) e.target.value = v;
+                else if (v.length <= 6) e.target.value = v.replace(/(\d{3})(\d{0,3})/, "$1.$2");
+                else if (v.length <= 9) e.target.value = v.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+                else e.target.value = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
             });
-        </script>
-        {% endif %}
-    {% endwith %}
+        }
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // 1. Máscara do CPF
-            const cpfInput = document.getElementById("cpf");
-            function aplicarMascaraCPF(e) {
-                let value = e.target.value.replace(/\D/g, "");
-                value = value.substring(0, 11);
-                let maskedValue = "";
-                if (value.length > 9) {
-                    maskedValue = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-                } else if (value.length > 6) {
-                    maskedValue = value.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
-                } else if (value.length > 3) {
-                    maskedValue = value.replace(/(\d{3})(\d{1,3})/, "$1.$2");
-                } else {
-                    maskedValue = value;
-                }
-                e.target.value = maskedValue;
-            }
-            if (cpfInput) {
-                cpfInput.addEventListener("input", aplicarMascaraCPF);
-            }
-
-            // 2. Lógica do Olho da Senha
-            const togglePassword = document.querySelector('#togglePassword');
-            const passwordInput = document.querySelector('#senha');
-            let isFixed = false; 
-
-            togglePassword.addEventListener('mouseenter', function () {
-                if (!isFixed) passwordInput.setAttribute('type', 'text');
-            });
-            togglePassword.addEventListener('mouseleave', function () {
-                if (!isFixed) passwordInput.setAttribute('type', 'password');
-            });
+        // 2. Lógica do Olho da Senha (Alinhamento e Troca de Ícone)
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#senha');
+        
+        if (togglePassword && passwordInput) {
             togglePassword.addEventListener('click', function () {
-                isFixed = !isFixed; 
-                if (isFixed) {
-                    passwordInput.setAttribute('type', 'text');
-                    this.textContent = '🙈'; 
-                    this.title = "Ocultar senha";
-                } else {
-                    passwordInput.setAttribute('type', 'password');
-                    this.textContent = '👁️';
-                    this.title = "Mostrar senha";
-                }
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? '👁️' : '🙈';
+                this.title = type === 'password' ? "Mostrar senha" : "Ocultar senha";
             });
-        });
-    </script>
-</body>
-</html>
+
+            // Efeito visual ao passar o mouse
+            togglePassword.addEventListener('mouseenter', () => {
+                if(passwordInput.getAttribute('type') === 'password') passwordInput.style.borderColor = "#2e7d32";
+            });
+            togglePassword.addEventListener('mouseleave', () => {
+                passwordInput.style.borderColor = "#ced4da";
+            });
+        }
+    });
+</script>
+{% endblock %}

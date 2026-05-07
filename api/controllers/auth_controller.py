@@ -1,7 +1,7 @@
 # /api/controllers/auth_controller.py
 import bcrypt
 import re
-from database import supabase
+from ..database import supabase
 
 def login_usuario(email_input, senha_input):
     """ Tenta logar um usuário. Retorna (dados_usuario, erro). """

@@ -1,6 +1,5 @@
-# /api/routes/auth_routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from controllers import auth_controller # Lembre-se de manter o import corrigido!
+from ..controllers import auth_controller
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -14,39 +13,34 @@ def login():
         
         if erro:
             flash(erro, 'erro')
-            # 🔴 CORRIGIDO AQUI
             return render_template('autenticacao/login.html') 
         
-        session['logged_in'] = True
-        session['id_usuario'] = dados_sessao['id_usuario']
-        session['nome_usuario'] = dados_sessao['nome_usuario']
-        session['id_grupo'] = dados_sessao.get('id_grupo') # Atualizado para id_grupo
+        session.update({
+            'logged_in': True,
+            'id_usuario': dados_sessao['id_usuario'],
+            'nome_usuario': dados_sessao['nome_usuario'],
+            'id_grupo': dados_sessao.get('id_grupo')
+        })
         
         flash(f"Bem-vindo(a), {dados_sessao['nome_usuario']}!", 'sucesso')
         
-        if session['id_grupo'] == 1:
-            return redirect(url_for('admin'))
-        else:
-            return redirect(url_for('inicio'))
+        # Redirecionamento baseado no nível de acesso
+        return redirect(url_for('main.admin')) if session['id_grupo'] == 1 else redirect(url_for('main.inicio'))
             
-    # 🔴 CORRIGIDO AQUI
     return render_template('autenticacao/login.html') 
 
 @auth_bp.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
     if request.method == 'POST':
-        dados_sessao, erro = auth_controller.cadastrar_usuario(request.form)
+        _, erro = auth_controller.cadastrar_usuario(request.form)
         
         if erro:
             flash(erro, 'erro')
-            # 🔴 CORRIGIDO AQUI
             return render_template('autenticacao/cadastro.html') 
         
-        # Se deu tudo certo no cadastro, você pode decidir se loga ele direto ou manda pro login
         flash("Cadastro realizado com sucesso! Faça login.", 'sucesso')
         return redirect(url_for('auth.login'))
 
-    # 🔴 CORRIGIDO AQUI
     return render_template('autenticacao/cadastro.html') 
 
 @auth_bp.route('/logout')
