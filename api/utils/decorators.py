@@ -29,12 +29,13 @@ def admin_required():
     def wrapper(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if 'logged_in' not in session:
+            if not session.get('logged_in'):
                 flash('Por favor, faça login para acessar esta página.', 'erro')
                 return redirect(url_for('auth.login'))
-            if not session.get('is_admin'):
+            if int(session.get('id_grupo', 0)) != 1:
                 flash('Você não tem permissão para acessar esta página.', 'erro')
                 return redirect(url_for('main.inicio'))
+                
             return f(*args, **kwargs)
         return decorated_function
     return wrapper

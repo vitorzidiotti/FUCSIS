@@ -56,7 +56,6 @@ def gerar_parcelas_automaticas(id_contrato, dados):
             "status_pagamento": "Pendente"
         }).execute()
 
-# --- LÓGICA DE FLUXOS (EXCLUSÃO COM REDISTRIBUIÇÃO) ---
 def excluir_parcela_fluxo(id_parcela, manter_valor=False):
     try:
         p = supabase.table("financeiro_parcelas").select("*").eq("id_parcela", id_parcela).single().execute().data

@@ -15,17 +15,24 @@ def login():
             flash(erro, 'erro')
             return render_template('autenticacao/login.html') 
         
+        # Salvando na sessão garantindo que os valores existam
         session.update({
             'logged_in': True,
-            'id_usuario': dados_sessao['id_usuario'],
-            'nome_usuario': dados_sessao['nome_usuario'],
+            'id_usuario': dados_sessao.get('id_usuario'),
+            'nome_usuario': dados_sessao.get('nome_usuario'),
             'id_grupo': dados_sessao.get('id_grupo')
         })
         
-        flash(f"Bem-vindo(a), {dados_sessao['nome_usuario']}!", 'sucesso')
+        flash(f"Bem-vindo(a), {dados_sessao.get('nome_usuario')}!", 'sucesso')
         
-        # Redirecionamento baseado no nível de acesso
-        return redirect(url_for('main.admin')) if session['id_grupo'] == 1 else redirect(url_for('main.inicio'))
+        # --- AJUSTE NO REDIRECIONAMENTO ---
+        # Convertemos para int() para garantir que a comparação numérica funcione
+        id_grupo = int(session.get('id_grupo', 0))
+        
+        if id_grupo == 1:
+            return redirect(url_for('main.admin'))
+        else:
+            return redirect(url_for('main.inicio'))
             
     return render_template('autenticacao/login.html') 
 
